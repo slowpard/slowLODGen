@@ -1,4 +1,3 @@
-import pandas as pd
 import os
 import time
 time.clock = time.time #hack as time.clock is not available since python 3.8, open-source and backward compatibility... :cry:
@@ -9,13 +8,22 @@ import numpy as np
 from pyffi.utils.withref import ref
 import traceback
 import logging
+import csv
+import gc
 
+#PATHS
+
+folder = 'F:\\SteamLibrary\\steamapps\\common\\Oblivion\\Data'
+plugins_txt = r'C:\Users\SLOWPARD\AppData\Local\Oblivion\plugins.txt'
+#empty_nif_template = r'S:\IC LOD Project\resources\empty_ninode.nif'
+empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
 class NifProcessor:
 
 
     #paths
     ATLAS_CSV_PATH = r'S:\IC LOD Project\atlas.csv'
+    EMPTY_NIF_PATH = r'S:\IC LOD Project\resources\empty_ninode.nif'
 
     #suppressing annoying spam of havok credits but don't want to suppress errors, so only hijacking the moppper credit function
     #since can't avoid making a new line, let's at least have this message
@@ -65,12 +73,11 @@ class NifProcessor:
 
     def __init__(self):
         self.master_nif = pyffi.formats.nif.NifFormat.Data()
-        self.material_list = []
         self.anim_list = []
         self.nif_template = None
         self.merged_data = []
         self.shapes_merged = 0
-        self.atlas_data = pd.DataFrame
+        self.atlas_data = {}
 
 
     def MatrixfromEulerAngles(self, x, y, z):
@@ -220,8 +227,12 @@ class NifProcessor:
 
 
     def ReadAtlasData(self):
-        self.atlas_data = pd.read_csv(self.ATLAS_CSV_PATH, sep=',')
-        self.atlas_data.set_index('name', inplace=True)
+        self.atlas_data = {}
+        with open(self.ATLAS_CSV_PATH, newline='', encoding='utf-8') as csvfile:
+            csv_file = csv.DictReader(csvfile)
+            for row in csv_file:
+                name = row['name']
+                self.atlas_data[name.lower()] = row
 
     def ReturnAtlasData(self, shape):
         tex_path = None
@@ -235,7 +246,7 @@ class NifProcessor:
             return None
         else:
             #print(self.atlas_data)
-            if str(tex_path.decode('UTF-8')).lower() in (self.atlas_data.index.astype(str).str.lower()):
+            if str(tex_path.decode('UTF-8')).lower() in self.atlas_data:
                     
                     print(f'Atlas found for shape {str(shape.name.decode("UTF-8"))}')
                     for uv in shape.data.uv_sets[0]:
@@ -248,7 +259,7 @@ class NifProcessor:
                             return None
 
 
-                    return self.atlas_data[str(tex_path.decode("UTF-8")).lower() == self.atlas_data.index.astype(str).str.lower()].iloc[0].to_dict()
+                    return self.atlas_data[tex_path.decode('UTF-8').lower()]
             else:
                 return None
 
@@ -850,9 +861,7 @@ class NifProcessor:
                     temp_vertice.z = adjusted_vector[2] + m_translation[2]                           
                     target_shape.data.vertices.append(temp_vertice)
 
-                vertice_list = []
-                for vertice in target_shape.data.vertices:
-                    vertice_list.append([vertice.x, vertice.y, vertice.z])
+                vertice_list = list([vertice.x, vertice.y, vertice.z] for vertice in target_shape.data.vertices)
                 vertice_list = np.array(vertice_list)
                 average_point = np.mean(vertice_list, axis=0)
                 distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
@@ -1050,11 +1059,7 @@ class NifProcessor:
 
     def CleanTemplates(self):
         
-
-        self.material_list = pd.DataFrame(columns=['name', 'shapename', 'glossiness', 'alpha', 'texture_path'])
-        self.material_list = self.material_list.set_index('name')
-
-        self.nif_template = open(r"S:\IC LOD Project\resources\empty_ninode.nif", 'rb')
+        self.nif_template = open(self.EMPTY_NIF_PATH, 'rb')
 
         self.master_nif = pyffi.formats.nif.NifFormat.Data()
         self.master_nif.read(self.nif_template)
@@ -1326,7 +1331,9 @@ class RecordREFR(Record):
                 self.baserecordformid = int.from_bytes(formid_bytes, 'big')
 
     def is_disabled(self):
-        return ((self.flags & (Record.FLAG_DISABLED | Record.FLAG_IGNORED | Record.FLAG_DELETED)) != 0)
+        return (((self.flags & (Record.FLAG_DISABLED | Record.FLAG_IGNORED | Record.FLAG_DELETED)) != 0) \
+            or (self.stateoppositeofparent_flag == 1 and self.parentformid == 20)) #20 = 14h is the formid of the player
+    
 
     def get_parent_formid(self):
         for subrecord in self.subrecords:
@@ -1370,6 +1377,22 @@ class RecordWRLD(Record):
         for subrecord in self.subrecords:
             if subrecord.sig == 'EDID':
                 self.editor_id = subrecord.data.decode('ascii').rstrip('\x00')
+                
+
+class RecordUseless(Record):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+        #print('Creating a record')
+        self.sig = sig  # str 4 bytes
+        self.data_size = data_size      # uint32
+        self.flags = flags              # uint32
+        self.form_id = form_id          # uint32
+        self.vc_info = vc_info          # uint32
+        self.data = None                # raw bytes
+        self.subrecords = []
+
+        
+    def parse_subrecords(self, data):
+        pass
 
 
 
@@ -1466,19 +1489,16 @@ class ESPParser:
             for i, master in enumerate(TES4Record.master_files):
                 self.load_order.append([i, master])
             return TES4Record
-        else:
+        elif record_type == 'ACHR' or record_type == 'ACRE' or record_type == 'CELL':
             return Record(record_type, data_size, flags, form_id, vc_info, record_data)
+        else:
+            return RecordUseless(record_type, data_size, flags, form_id, vc_info, None)
+        #everything else not needed for LOD
+            
 
     def find_record_by_formid(self, formid):
         return self.formid_map.get(formid)
-
-    def add_record(self, record, group=None):
-        if group:
-            group.records.append(record)
-        else:
-            self.records.append(record)
-        self.formid_map[record.form_id] = record
-
+    
     def reconstruct(self, filename):
         with open(filename, 'wb') as f:
             for item in self.records:
@@ -1489,7 +1509,7 @@ class ESPParser:
             record.renumber_formids(formid_chg_map, self.formid_map)
 
 
-class BSAParser():
+class BSAParser(): 
 
     FLAG_COMPRESSED = 0x00000004
     FLAG_FULL_PATH_IN_BLOCK = 0x00000100
@@ -1506,7 +1526,7 @@ class BSAParser():
     def parse(self, filename):
         self.filename = filename
         with open(filename, 'rb') as f:
-            data = f.read()
+            data = f.read(3000000) #around first 3MB, an overkill for all but some theoretical bsas
         self._parse_data(data)
 
 
@@ -1545,7 +1565,7 @@ class BSAParser():
         #36 bytes
         magic_number, bsa_version, folder_offset, flags, \
         n_folders, n_files, l_foldernames, \
-        l_filenames, content_flags = struct.unpack_from('<4sIIIIIIII', data, 0)
+        l_filenames, content_flags = struct.unpack_from('<4sIIIIIIII', data[:36], 0)
         
         if magic_number != b'BSA\x00':
             print('Error: Not a BSA')
@@ -1594,29 +1614,32 @@ class BSAParser():
 
     def extract(self, files, output_folder):
         with open(self.filename, 'rb') as f:
-            data = f.read()
-        for file in files:
-            file = os.path.join(file)
-            if file in self.files:
-                offset, size, compression_flag = self.files[file]
-                #if self.full_path_in_block: #apparenly wrong info in uesp
-                #    offset += data[offset] + 1
-                if self.compressed:
-                    offset += 4
-                    decompressed_file = zlib.decompress(data[offset:offset+size])
+            for file in files:
+                file = os.path.join(file)
+                if file in self.files:
+                    offset, size, compression_flag = self.files[file]
+                    #if self.full_path_in_block: #apparenly wrong info in uesp
+                    #    offset += data[offset] + 1
+                    if self.compressed:
+                        offset += 4
+                        f.seek(offset)
+                        data = f.read(size)
+                        decompressed_file = zlib.decompress(data)
+                    else:
+                        f.seek(offset)
+                        data = f.read(size)
+                        decompressed_file = data
+                    os.makedirs(os.path.dirname(os.path.join(output_folder, file)), exist_ok=True)
+                    output_file = open(os.path.join(output_folder, file), 'wb')
+                    output_file.write(decompressed_file)
+                    output_file.close()
                 else:
-                    decompressed_file = data[offset:offset+size]
-                os.makedirs(os.path.dirname(os.path.join(output_folder, file)), exist_ok=True)
-                f = open(os.path.join(output_folder, file), 'wb')
-                f.write(decompressed_file)
-                f.close()
-            else:
-                print(f'Error: file {file} not found')
+                    print(f'Error: file {file} not found')
+        
 
 
 
-folder = 'F:\\SteamLibrary\\steamapps\\common\\Oblivion\\Data'
-plugins_txt = r'C:\Users\SLOWPARD\AppData\Local\Oblivion\plugins.txt'
+
 
 def sort_esp_list(filepath, folder):
     file_list = []
@@ -1673,12 +1696,14 @@ for plugin in load_order:
     for record in parser.formid_map:
         if parser.formid_map[record].sig in signatures:
             object_dict[record] = parser.formid_map[record]
+#gc.collect()
 
 print('Processing LOD files')
 
 bsa_files = [f for f in os.listdir(folder) if f.endswith('.bsa')]
 
 bsa_loadorder = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa']
+#TODO: skipper for some bsas like OUT
 
 far_mesh_list = []
 tree_billboard_textures = []
@@ -1703,7 +1728,6 @@ for bsa in bsa_loadorder:
     if len(list_to_extract) > 0:
         try:
             bsa_obj.extract(list_to_extract, os.path.join(folder, 'LODMerger'))
-            
             far_mesh_list += list_to_extract
         except:
             print('Failed to extract LOD files from', bsa)
@@ -1714,11 +1738,11 @@ far_trees = []
 
 print('Processing base objects...')
 
+#going through every STAT and TREE and understanding if it can be VWD
 for obj in object_dict:
     
     if object_dict[obj].sig == 'STAT':
         mesh_found = False
-
         try:
             if os.path.exists(os.path.join(folder, 'meshes', object_dict[obj].model_filename.lower().replace('.nif', '_far.nif'))):
                     far_statics.append(obj)
@@ -1730,23 +1754,18 @@ for obj in object_dict:
             try:
                 if 'meshes\\' + object_dict[obj].model_filename.lower().replace('.nif', '_far.nif') in far_mesh_list:
                     far_statics.append(obj)
-                    
             except AttributeError:
                 pass
-
-        
 
 
     elif object_dict[obj].sig == 'TREE':
         billboard_found = False
-        
         try:
             if 'textures\\trees\\billboards' + object_dict[obj].model_filename.lower().replace('.spt', '.dds') in tree_billboard_textures:
                 billboard_found = True
                 far_trees.append(obj)
         except AttributeError:
             pass
-
         if not billboard_found:
             try:
                 if os.path.exists(os.path.join(folder, 'textures\\trees\\billboards', object_dict[obj].model_filename.lower().replace('.spt', '.dds'))):
@@ -1764,7 +1783,7 @@ for obj_id in dict(sorted(object_dict.items())):
     if obj.sig == 'REFR':
         if obj.parent_worldspace:
             if obj.baserecordformid in far_statics or obj.baserecordformid in far_trees:
-                if not obj.is_disabled():
+                if not obj.is_disabled(): #TODO: parent checks
                     worldspace = obj.parent_worldspace.editor_id
                     if not worldspace in LODGen:
                         LODGen[worldspace] = {}
@@ -1778,6 +1797,7 @@ for obj_id in dict(sorted(object_dict.items())):
                     LODGen[worldspace][x_cell][y_cell].append([obj.baserecordformid, obj.position, obj.rotation, obj.scale])
 
 merger = NifProcessor()
+merger.EMPTY_NIF_PATH = empty_nif_template
 
 def MiddleOfCellCalc(cell_x, cell_y):
     
@@ -1789,10 +1809,11 @@ def MiddleOfCellCalc(cell_x, cell_y):
     return [x_offset, y_offset, z_offset]
 
 
-record_offset = 2048
+record_offset = 2048 #first formid of the file
 
 MODB_Template = Subrecord('MODB', 4, struct.pack('f', 2048.0))
-STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, [], None) #1347768903 = STAT
+STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, [], None) #1347768903 = 'STAT'
+
 
 for worldspace in LODGen:
     for i in LODGen[worldspace]:
@@ -1811,13 +1832,13 @@ for worldspace in LODGen:
                 average_z = z_buffer / mergeable_count
                 middle_of_cell = MiddleOfCellCalc(i, j)
                 merger.CleanTemplates()
-                merger.ReadAtlasData()
                 for obj in obj_to_merge:
                     mesh_file = object_dict[obj[0]].model_filename
                     path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                     if not os.path.exists(path):
                         path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                     position = [obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z]
+                    #radians to degrees
                     rotations = [obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 ]
                     scale = obj[3]
                     if scale is None:
@@ -1827,7 +1848,7 @@ for worldspace in LODGen:
                     merger.ProcessNif(path, position, rotations, scale)
                 merger.CleanAnimationController()
                 merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
-                shutil.copyfile(r"S:\IC LOD Project\resources\empty_ninode.nif", \
+                shutil.copyfile(empty_nif_template, \
                                 os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
                 
                 record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
