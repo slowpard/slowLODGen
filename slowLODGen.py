@@ -13,43 +13,141 @@ import csv
 start_time = time.time()
 
 #pyffi has extremly abstract struct classes defined from xmls
-#this is a hack to make them *much* faster to work with
+#this is a hack to make them *much* faster to work with 
 
-def Vector3_fast_init(self, template = None, argument = None, parent = None):
-    float_object1 = pyffi.object_models.common.Float()
-    float_object2 = pyffi.object_models.common.Float()
-    float_object3 = pyffi.object_models.common.Float()
-    self._x_value_ = float_object1
-    self._y_value_ = float_object2
-    self._z_value_ = float_object3
-    self._items = [float_object1, float_object2, float_object3]
+if True:
+    def Vector3_fast_init(self, template = None, argument = None, parent = None):
+        float_object1 = pyffi.object_models.common.Float()
+        float_object2 = pyffi.object_models.common.Float()
+        float_object3 = pyffi.object_models.common.Float()
+        self._x_value_ = float_object1
+        self._y_value_ = float_object2
+        self._z_value_ = float_object3
+        self._items = [float_object1, float_object2, float_object3]
 
-def Triangle_fast_init(self, template = None, argument = None, parent = None):
-    short_object1 = pyffi.object_models.common.UShort()
-    short_object2 = pyffi.object_models.common.UShort()
-    short_object3 = pyffi.object_models.common.UShort()
-    self._v_1_value_ = short_object1
-    self._v_2_value_ = short_object2
-    self._v_3_value_ = short_object3
-    self._items = [short_object1, short_object2, short_object3]
+    def Triangle_fast_init(self, template = None, argument = None, parent = None):
+        short_object1 = pyffi.object_models.common.UShort()
+        short_object2 = pyffi.object_models.common.UShort()
+        short_object3 = pyffi.object_models.common.UShort()
+        self._v_1_value_ = short_object1
+        self._v_2_value_ = short_object2
+        self._v_3_value_ = short_object3
+        self._items = [short_object1, short_object2, short_object3]
 
-pyffi.formats.nif.NifFormat.Vector3.__init__ = Vector3_fast_init
-pyffi.formats.nif.NifFormat.Triangle.__init__ = Triangle_fast_init
 
-def Vector3_fast_write(self, stream, data):
-    self._x_value_.write(stream, data)
-    self._y_value_.write(stream, data)
-    self._z_value_.write(stream, data)
+    pyffi.formats.nif.NifFormat.Vector3.__init__ = Vector3_fast_init
+    pyffi.formats.nif.NifFormat.Triangle.__init__ = Triangle_fast_init
 
-pyffi.formats.nif.NifFormat.Vector3.write = Vector3_fast_write
+    def Vector3_fast_write(self, stream, data):
+        self._x_value_.write(stream, data)
+        self._y_value_.write(stream, data)
+        self._z_value_.write(stream, data)
+    pyffi.formats.nif.NifFormat.Vector3.write = Vector3_fast_write
 
-def Triangle_fast_write(self, stream, data):
-    self._v_1_value_.write(stream, data)
-    self._v_2_value_.write(stream, data)
-    self._v_3_value_.write(stream, data)
-    #self._log_struct(stream, attr)
+    def Triangle_fast_write(self, stream, data):
+        self._v_1_value_.write(stream, data)
+        self._v_2_value_.write(stream, data)
+        self._v_3_value_.write(stream, data)
+        #self._log_struct(stream, attr)
+    pyffi.formats.nif.NifFormat.Triangle.write = Triangle_fast_write
+    
+    def Color3_fast_write(self, stream, data):
+        self._r_value_.write(stream, data)
+        self._g_value_.write(stream, data)
+        self._b_value_.write(stream, data)  
+    pyffi.formats.nif.NifFormat.Color3.write = Color3_fast_write
 
-pyffi.formats.nif.NifFormat.Triangle.write = Triangle_fast_write
+    def Color4_fast_write(self, stream, data):
+        self._r_value_.write(stream, data)
+        self._g_value_.write(stream, data)
+        self._b_value_.write(stream, data)
+        self._a_value_.write(stream, data)
+    pyffi.formats.nif.NifFormat.Color4.write = Color4_fast_write
+
+    def TexCoord_fast_write(self, stream, data):
+        self._u_value_.write(stream, data)
+        self._v_value_.write(stream, data)
+    pyffi.formats.nif.NifFormat.TexCoord.write = TexCoord_fast_write 
+
+    def Vector3_get_size(self, data):
+        return 12
+    def Triangle_get_size(self, data):
+        return 6    
+    def TexCoord_get_size(self, data):
+        return 8
+    def Color4_get_size(self, data):
+        return 16
+    def Color3_get_size(self, data):
+        return 12
+    pyffi.formats.nif.NifFormat.Vector3.get_size = Vector3_get_size
+    pyffi.formats.nif.NifFormat.Triangle.get_size = Triangle_get_size
+    pyffi.formats.nif.NifFormat.TexCoord.get_size = TexCoord_get_size
+    pyffi.formats.nif.NifFormat.Color4.get_size = Color4_get_size
+    pyffi.formats.nif.NifFormat.Color3.get_size = Color3_get_size
+
+
+    def Vector3_get_x_value(self):
+        return self._x_value_._value
+    def Vector3_set_x_value(self, value):
+        self._x_value_._value = value
+    setattr(pyffi.formats.nif.NifFormat.Vector3, 'x', property(Vector3_get_x_value, Vector3_set_x_value))
+
+    def Vector3_get_y_value(self):
+        return self._y_value_._value
+    def Vector3_set_y_value(self, value):
+        self._y_value_._value = value
+    setattr(pyffi.formats.nif.NifFormat.Vector3, 'y', property(Vector3_get_y_value, Vector3_set_y_value))
+
+
+    def Vector3_get_z_value(self):
+        return self._z_value_._value
+    def Vector3_set_z_value(self, value):
+        self._z_value_._value = value
+    setattr(pyffi.formats.nif.NifFormat.Vector3, 'z', property(Vector3_get_z_value, Vector3_set_z_value))
+
+
+    def Triangle_get_v_1_value(self):
+        return self._v_1_value_._value
+    def Triangle_set_v_1_value(self, value):
+        self._v_1_value_._value = value
+
+    setattr(pyffi.formats.nif.NifFormat.Triangle, 'v_1', property(Triangle_get_v_1_value, Triangle_set_v_1_value))
+
+    def Triangle_get_v_2_value(self):
+        return self._v_2_value_._value
+    def Triangle_set_v_2_value(self, value):
+        self._v_2_value_._value = value 
+    setattr(pyffi.formats.nif.NifFormat.Triangle, 'v_2', property(Triangle_get_v_2_value, Triangle_set_v_2_value))
+
+    def Triangle_get_v_3_value(self):
+        return self._v_3_value_._value
+    def Triangle_set_v_3_value(self, value):
+        self._v_3_value_._value = value
+    setattr(pyffi.formats.nif.NifFormat.Triangle, 'v_3', property(Triangle_get_v_3_value, Triangle_set_v_3_value))
+
+
+    #makes perf MUCH worse on pypy but much faster on cpython ¯\_(ツ)_/¯ 
+    def log_struct_fast(self, stream, attr):
+        pass
+    
+    #this still does something but less than the original function
+    #commenting out stuff actually makes it run worse idk
+    #OpTiMiZaTiOn
+    def log_struct_fast(self, stream, attr):
+        val = getattr(self, "_%s_value_" % attr.name)  # debug
+
+        try:
+            pass
+            out = val.get_value()  # debug
+        except Exception:
+            pass
+        else:
+            pass
+            #offset = stream.tell()
+            #hex_ver = "0x%08X" % offset
+            #self.logger.debug("* {0}.{1} = {2} : type {3} at {4} offset {5} - ".format(self.__class__.__name__, attr.name, str(out), attr.type_, hex_ver, offset ))  # debug
+
+    pyffi.object_models.xml.struct_.StructBase._log_struct = log_struct_fast
 
 #PATHS
 
@@ -1210,6 +1308,9 @@ class NifProcessor:
                     self.UpdateTangentSpaces()
                     self.CleanAnimationController()
                     self.SaveNif(os.path.join(output_folder, os.path.relpath(file_name, folder)))
+
+
+
 
 
 import struct
