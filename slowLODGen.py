@@ -2023,7 +2023,9 @@ TES4Record.subrecords.append(CNAMTemplate)
 TES4Record.subrecords.append(SNAMTemplate)
 new_esp.records.append(TES4Record)
 new_esp.records.append(STAT_Group)
+modified_time = os.path.getmtime(os.path.join(folder, 'MergedLOD.esp'))
 new_esp.reconstruct(os.path.join(folder, 'MergedLOD.esp'))
+os.utime(os.path.join(folder, 'MergedLOD.esp'), (modified_time, modified_time))
 
 
 print('Removing old LOD files...')
