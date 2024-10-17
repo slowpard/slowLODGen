@@ -9,7 +9,30 @@ from pyffi.utils.withref import ref
 import traceback
 import logging
 import csv
-import gc
+
+start_time = time.time()
+
+def Vector3_fast_init(self, template = None, argument = None, parent = None):
+    float_object1 = pyffi.object_models.common.Float()
+    float_object2 = pyffi.object_models.common.Float()
+    float_object3 = pyffi.object_models.common.Float()
+    self._x_value_ = float_object1
+    self._y_value_ = float_object2
+    self._z_value_ = float_object3
+    self._items = [float_object1, float_object2, float_object3]
+
+
+def Triangle_fast_init(self, template = None, argument = None, parent = None):
+    short_object1 = pyffi.object_models.common.UShort()
+    short_object2 = pyffi.object_models.common.UShort()
+    short_object3 = pyffi.object_models.common.UShort()
+    self._v_1_value_ = short_object1
+    self._v_2_value_ = short_object2
+    self._v_3_value_ = short_object3
+    self._items = [short_object1, short_object2, short_object3]
+
+pyffi.formats.nif.NifFormat.Vector3.__init__ = Vector3_fast_init
+pyffi.formats.nif.NifFormat.Triangle.__init__ = Triangle_fast_init
 
 #PATHS
 
@@ -672,6 +695,7 @@ class NifProcessor:
         except Exception as e:
             logging.error(traceback.format_exc())
 
+  
     def process_nif_trigeometry(self, trishape, translation, rotation, scale):
 
         
@@ -852,17 +876,18 @@ class NifProcessor:
                         k.g = 1.0
                         k.b = 1.0
                         k.a = 1.0
-                    
+
+
+                vertice_list = []    
                 for vertice in trishape.data.vertices:
                     temp_vertice = pyffi.formats.nif.NifFormat.Vector3()
                     adjusted_vector = np.matmul(f_scale * np.array([vertice.x, vertice.y, vertice.z]), m_rotation)
                     temp_vertice.x = adjusted_vector[0] + m_translation[0]
                     temp_vertice.y = adjusted_vector[1] + m_translation[1]
-                    temp_vertice.z = adjusted_vector[2] + m_translation[2]                           
+                    temp_vertice.z = adjusted_vector[2] + m_translation[2]
+                    vertice_list.append(np.add(adjusted_vector, m_translation))                          
                     target_shape.data.vertices.append(temp_vertice)
 
-                vertice_list = list([vertice.x, vertice.y, vertice.z] for vertice in target_shape.data.vertices)
-                vertice_list = np.array(vertice_list)
                 average_point = np.mean(vertice_list, axis=0)
                 distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
                 target_shape.data.center.x = average_point[0]
@@ -1043,7 +1068,7 @@ class NifProcessor:
         else:
             print('Not a NIF file! ', nif_path)
 
-
+    
     def SaveNif(self, nif_path):
 
         print('Saving ', nif_path)
@@ -1855,9 +1880,9 @@ for worldspace in LODGen:
                                         + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
                 STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
                 EDID_Template = Subrecord('EDID', len(record_edid), \
-                                          record_edid.encode('ascii'))
+                                        record_edid.encode('ascii'))
                 MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
-                                           ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
+                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
                 STATRecord.subrecords.append(EDID_Template)
                 STATRecord.subrecords.append(MODL_Template)
                 STATRecord.subrecords.append(MODB_Template)
@@ -1953,4 +1978,9 @@ for worldspace in LODGen:
 
     
         cmp.write((7).to_bytes(4, byteorder='little', signed=False))
-    
+
+
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Finished in {elapsed_time:.6f} seconds")
