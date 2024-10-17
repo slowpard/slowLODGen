@@ -12,6 +12,9 @@ import csv
 
 start_time = time.time()
 
+#pyffi has extremly abstract struct classes defined from xmls
+#this is a hack to make them *much* faster to work with
+
 def Vector3_fast_init(self, template = None, argument = None, parent = None):
     float_object1 = pyffi.object_models.common.Float()
     float_object2 = pyffi.object_models.common.Float()
@@ -20,7 +23,6 @@ def Vector3_fast_init(self, template = None, argument = None, parent = None):
     self._y_value_ = float_object2
     self._z_value_ = float_object3
     self._items = [float_object1, float_object2, float_object3]
-
 
 def Triangle_fast_init(self, template = None, argument = None, parent = None):
     short_object1 = pyffi.object_models.common.UShort()
@@ -33,6 +35,21 @@ def Triangle_fast_init(self, template = None, argument = None, parent = None):
 
 pyffi.formats.nif.NifFormat.Vector3.__init__ = Vector3_fast_init
 pyffi.formats.nif.NifFormat.Triangle.__init__ = Triangle_fast_init
+
+def Vector3_fast_write(self, stream, data):
+    self._x_value_.write(stream, data)
+    self._y_value_.write(stream, data)
+    self._z_value_.write(stream, data)
+
+pyffi.formats.nif.NifFormat.Vector3.write = Vector3_fast_write
+
+def Triangle_fast_write(self, stream, data):
+    self._v_1_value_.write(stream, data)
+    self._v_2_value_.write(stream, data)
+    self._v_3_value_.write(stream, data)
+    #self._log_struct(stream, attr)
+
+pyffi.formats.nif.NifFormat.Triangle.write = Triangle_fast_write
 
 #PATHS
 
