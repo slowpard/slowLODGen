@@ -1987,6 +1987,8 @@ def sort_esp_list(filepath, folder):
         filenames = [line.strip() for line in file if line.strip()]
         
     for filename in filenames:
+        if filename.startswith('#'):
+            continue
         full_filename = os.path.join(folder, filename)
         _, extension = os.path.splitext(filename)
         extension = extension.lower()
