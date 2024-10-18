@@ -599,20 +599,20 @@ class NifProcessor:
         if not tex_path:
             return None
         else:
-            if str(tex_path.decode('UTF-8')).lower() in self.atlas_data:
+            if str(tex_path.decode('windows-1252')).lower() in self.atlas_data:
                     
-                    logging.debug(f'Atlas found for shape {str(shape.name.decode("UTF-8"))}')
+                    logging.debug(f'Atlas found for shape {str(shape.name.decode("windows-1252"))}')
                     for uv in shape.data.uv_sets[0]:
                         limit = self.ATLAS_UV_COORDINATES_LIMIT
                         if ((uv.u > 1 + limit) or 
                             (uv.v > 1 + limit) or
                             (uv.u < -limit) or
                             (uv.v < -limit)):
-                            logging.warning(f'Shape {str(shape.name.decode("UTF-8"))} not atlassed - UVs out of bounds')
+                            logging.warning(f'Shape {str(shape.name.decode("windows-1252"))} not atlassed - UVs out of bounds')
                             return None
 
 
-                    return self.atlas_data[tex_path.decode('UTF-8').lower()]
+                    return self.atlas_data[tex_path.decode('windows-1252').lower()]
             else:
                 return None
 
@@ -975,7 +975,7 @@ class NifProcessor:
 
                 target_sequence = None
 
-                if str(k.name.decode('UTF-8')) in self.AWLS_ANIM_GROUP_LIST:
+                if str(k.name.decode('windows-1252')) in self.AWLS_ANIM_GROUP_LIST:
                     for s in self.master_nif.roots[0].controller.controller_sequences:
                         if s.name == k.name:
                                 target_sequence = s
@@ -1046,12 +1046,12 @@ class NifProcessor:
         atlas_obj = None
         for property in trishape.properties:
             if isinstance(property, pyffi.formats.nif.NifFormat.NiTexturingProperty):
-                texture_path = str(property.base_texture.source.file_name.decode('UTF-8'))
+                texture_path = str(property.base_texture.source.file_name.decode('windows-1252'))
                 texture_path_raw = property.base_texture.source.file_name
                 texture_apply_mode = property.apply_mode
                 texture_property = property
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiMaterialProperty):
-                material_name = str(property.name.decode('UTF-8'))
+                material_name = str(property.name.decode('windows-1252'))
                 material_name_raw = property.name
                 material_glossiness = property.glossiness
                 material_alpha = property.alpha
@@ -1124,7 +1124,7 @@ class NifProcessor:
                     #tr_points_check = ((shape.data.num_triangle_points + trishape.data.num_triangle_points) < 65000)
                     for k in shape.properties:
                         if isinstance(k, pyffi.formats.nif.NifFormat.NiTexturingProperty):
-                            texture_check = (texture_path.lower() == str(k.base_texture.source.file_name.decode('UTF-8')).lower())
+                            texture_check = (texture_path.lower() == str(k.base_texture.source.file_name.decode('windows-1252')).lower())
                             apply_mode_check = (texture_apply_mode == k.apply_mode)
                         elif isinstance(k, pyffi.formats.nif.NifFormat.NiMaterialProperty):
                             material_g_check = (material_glossiness == k.glossiness)
@@ -1171,7 +1171,7 @@ class NifProcessor:
                 #self.material_list.loc[material_name] = [str(trishape.name.decode('UTF-8')), material_glossiness, material_alpha, str(texture_path)]
                 self.master_nif.roots[0].add_child(pyffi.formats.nif.NifFormat.NiTriShape())
                 trishape_t = self.master_nif.roots[0].children[-1]
-                trishape_t.name = str(trishape.name.decode('UTF-8'))
+                trishape_t.name = str(trishape.name.decode('windows-1252'))
                 trishape_t.flags = trishape.flags
 
                 for k in trishape.properties:
@@ -1543,10 +1543,10 @@ class Subrecord:
 
     def serialize(self):
         if self.has_size:
-            header = struct.pack('<4sH', self.sig.encode('ascii'), self.size)
+            header = struct.pack('<4sH', self.sig.encode('utf-8'), self.size)
             return header + self.data
         else:  
-            return self.sig.encode('ascii') + self.data
+            return self.sig.encode('utf-8') + self.data
 
 class Record:
 
@@ -1588,7 +1588,7 @@ class Record:
             return
         
         while offset < len(data):
-            sig = data[offset:offset+4].decode('ascii')
+            sig = data[offset:offset+4].decode('utf-8')
             if sig == 'OFST':
                 # OFST subrecord: no size field, consumes remaining data
                 sub_data = data[offset+4:]
@@ -1607,14 +1607,14 @@ class Record:
 
     def serialize(self):
         if self.is_compressed():
-            header = struct.pack('<4sIIII', self.sig.encode('ascii'),
+            header = struct.pack('<4sIIII', self.sig.encode('utf-8'),
                                 self.data_size, self.flags, self.form_id,
                                 self.vc_info)
             return header + self.data
         else:
             subrecords_data = b''.join(sub.serialize() for sub in self.subrecords)
             self.data_size = len(subrecords_data)
-            header = struct.pack('<4sIIII', self.sig.encode('ascii'),
+            header = struct.pack('<4sIIII', self.sig.encode('utf-8'),
                                  self.data_size, self.flags, self.form_id,
                                  self.vc_info)
             return header + subrecords_data
@@ -1648,7 +1648,7 @@ class RecordTES4(Record):
         self.master_files = []
         for subrecord in self.subrecords:
             if subrecord.sig == 'MAST':
-                self.master_files.append(subrecord.data.decode('ascii').rstrip('\x00'))
+                self.master_files.append(subrecord.data.decode('utf-8').rstrip('\x00'))
                 #print('masterfile:', self.master_files[-1])
         #print(self.master_files)
 
@@ -1724,8 +1724,8 @@ class RecordSTAT(Record):
     def parse_subrecords(self, data):
         super().parse_subrecords(data)
         for subrecord in self.subrecords:
-            if subrecord.sig == 'MODL':
-                self.model_filename = subrecord.data.decode('ascii').rstrip('\x00')
+            if subrecord.sig == 'MODL':                
+                self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
 
 class RecordTREE(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
@@ -1738,7 +1738,7 @@ class RecordTREE(Record):
         super().parse_subrecords(data)
         for subrecord in self.subrecords:
             if subrecord.sig == 'MODL':
-                self.model_filename = subrecord.data.decode('ascii').rstrip('\x00')
+                self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
 
 class RecordWRLD(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
@@ -1750,7 +1750,7 @@ class RecordWRLD(Record):
         super().parse_subrecords(data)
         for subrecord in self.subrecords:
             if subrecord.sig == 'EDID':
-                self.editor_id = subrecord.data.decode('ascii').rstrip('\x00')
+                self.editor_id = subrecord.data.decode('windows-1252').rstrip('\x00')
                 
 
 class RecordUseless(Record):
@@ -1806,7 +1806,7 @@ class ESPParser:
         if end is None:
             end = len(data)
         while offset < end:
-            record_type = data[offset:offset+4].decode('ascii')
+            record_type = data[offset:offset+4].decode('utf-8')
             if record_type == 'GRUP':
                 group_size = struct.unpack_from('<I', data, offset+4)[0]
                 group_end = offset + group_size
@@ -1824,7 +1824,7 @@ class ESPParser:
 
     def _parse_group(self, data, offset, end, group):
         while offset < end:
-            record_type = data[offset:offset+4].decode('ascii')
+            record_type = data[offset:offset+4].decode('utf-8')
             if record_type == 'GRUP':
                 group_size = struct.unpack_from('<I', data, offset+4)[0]
                 group_end = offset + group_size
@@ -1844,7 +1844,7 @@ class ESPParser:
 
     def _parse_record(self, data, offset, parent_group):
         header = struct.unpack_from('<4sIIII', data, offset)
-        record_type = header[0].decode('ascii')
+        record_type = header[0].decode('utf-8')
         data_size = header[1]
         flags = header[2]
         form_id = header[3]
@@ -1959,7 +1959,7 @@ class BSAParser():
         for filename in data[offset:offset+l_filenames].split(b'\x00'):
             try:
                 if filename != b'':
-                    files[self.CalculateHash(filename.decode('ascii'))] = filename.decode('ascii')
+                    files[self.CalculateHash(filename.decode('windows-1252'))] = filename.decode('windows-1252')
             except:
                 logging.error(f'Error: filename decoding error for {filename}')
 
@@ -1969,7 +1969,7 @@ class BSAParser():
             offset -= l_filenames 
             string_length = data[offset]
             #string_length = int.from_bytes(data[offset], signed=False, byteorder='little')
-            folder_path = data[offset + 1:offset + 1 + string_length].decode('ascii').rstrip('\x00')
+            folder_path = data[offset + 1:offset + 1 + string_length].decode('windows-1252').rstrip('\x00')
             folder_files = []
             for i in range(n_files):
                 try:
@@ -2288,9 +2288,9 @@ for worldspace in LODGen:
                                             + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
                 STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
                 EDID_Template = Subrecord('EDID', len(record_edid), \
-                                        record_edid.encode('ascii'))
+                                        record_edid.encode('utf-8'))
                 MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
-                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
+                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('utf-8') + b'\x00')
                 STATRecord.subrecords.append(EDID_Template)
                 STATRecord.subrecords.append(MODL_Template)
                 STATRecord.subrecords.append(MODB_Template)
