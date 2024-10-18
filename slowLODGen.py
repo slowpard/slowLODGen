@@ -1002,7 +1002,7 @@ class NifProcessor:
                 elif isinstance(child, pyffi.formats.nif.NifFormat.NiTriStrips):
                     self.process_nif_trigeometry(child, m_translation, m_rotation, f_scale)
                 else:
-                    logging.warning("Unexpected type in NiNode: " + type(child))
+                    logging.warning(f"Unexpected type in NiNode: {type(child)}")
                     
         except Exception as e:
             logging.error(traceback.format_exc())
