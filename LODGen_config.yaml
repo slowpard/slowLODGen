@@ -66,3 +66,10 @@ meshes_to_skip:
  - "xulimpisle\\lodwaterplane.nif"
  - "xulso\\waterlod\\lodwaterplane.nif"
  - "oblivion\\environment\\fxoblivionlightbeamlong01.nif"
+ 
+#list of bsas not loaded by esps
+#if doesn't exist will be skipped 
+hardcoded_bsas:
+ - "Oblivion - Meshes.bsa"
+ - "Oblivion - Misc.bsa"
+ - "Oblivion - Textures - Compressed.bsa"

@@ -91,6 +91,11 @@ try:
 except:
     meshes_to_skip = []
 
+try:
+    hardcoded_bsas = config["hardcoded_bsas"]
+except:
+    hardcoded_bsas = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa']
+
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
 #pyffi has extremly abstract struct classes defined from xmls
@@ -2104,7 +2109,10 @@ logging.info('Processing LOD files')
 
 bsa_files = [f for f in os.listdir(folder) if f.endswith('.bsa')]
 
-bsa_loadorder = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa']
+
+
+bsa_loadorder = [] + hardcoded_bsas
+
 #TODO: skipper for some bsas like OUT
 
 far_mesh_list = []
@@ -2116,7 +2124,8 @@ for plugin in load_order:
             bsa_loadorder.append(file)
             
 for bsa in bsa_loadorder:
-    if not os.path.exists(bsa):
+    logging.info(f'Reading BSA: {bsa}')
+    if not os.path.exists(os.path.join(folder, bsa)):
         continue
     bsa_obj = BSAParser()
     logging.info(f'Reading BSA: {bsa}')
