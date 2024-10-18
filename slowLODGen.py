@@ -1960,7 +1960,7 @@ class BSAParser():
                     offset, size, compression_flag = self.files[file]
                     #if self.full_path_in_block: #apparenly wrong info in uesp
                     #    offset += data[offset] + 1
-                    if self.compressed:
+                    if (self.compressed and compression_flag == 0) or (not self.compressed and compression_flag): 
                         offset += 4
                         f.seek(offset)
                         data = f.read(size)
