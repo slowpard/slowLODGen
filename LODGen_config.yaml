@@ -1,9 +1,11 @@
 #path to *Data* folder, if empty, the script will fetch the path from the registry
+#note that the path has to use double slashes: "C:\\Games\\Oblivion\\Data"
 #default: ""
 game_folder: ""
 
 #path to plugins.txt file, if empty, the script will fetch the file from its default location
 #useful for people with several local Oblivion installs
+#note that the path has to use double slashes: "C:\\Games\\Oblivion\\plugins.txt"
 #default: ""
 plugins_txt_path: ""
 
