@@ -1840,11 +1840,11 @@ class BSAParser():
         root,ext = os.path.splitext(fileName.lower()) #--"bob.dds" >> root = "bob", ext = ".dds"
         #--Hash1
         chars = [ord(x) for x in root] #map(ord,root) #--'bob' >> chars = [98,111,98]
-        try:
+        
+        if len(chars) > 1:
             hash1 = chars[-1] | (0,chars[-2])[len(chars)>2]<<8 | len(chars)<<16 | chars[0]<<24
-        except:
-            print('Error caclulating hash for:', fileName)
-            hash1 = 0 #broken hash
+        else:
+            hash1 = chars[-1] | (0,chars[-1])[len(chars)>2]<<8 | len(chars)<<16 | chars[0]<<24
         
         #--(a,b)[test] is similar to test?a:b in C. (Except that evaluation is not shortcut.)
         if   ext == '.kf':  hash1 |= 0x80
