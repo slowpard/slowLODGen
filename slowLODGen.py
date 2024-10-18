@@ -54,6 +54,11 @@ try:
 except:
     plugins_txt = ""
 
+try:
+    skip_nif_generation = config["skip_mesh_generation"]
+except:
+    skip_nif_generation = False
+
 if plugins_txt == "":
     oblivion_plugins_path = os.path.join(os.getenv("USERPROFILE"), "AppData\\Local\\Oblivion", "plugins.txt")
     if os.path.exists(oblivion_plugins_path):
@@ -2005,9 +2010,9 @@ signatures = ['REFR', 'STAT', 'TREE']
 object_dict = {}
 
 try:
-    mergedLOD_index = load_order.index('MergedLOD.esp')
+    mergedLOD_index = load_order.index('MergedLOD.esm')
 except:
-    logging.critical('Error: MergedLOD.esp not found in load order')
+    logging.critical('Error: MergedLOD.esm not found in load order')
     exit()
 
 load_order_lowercase = [x.lower() for x in load_order]
@@ -2156,6 +2161,9 @@ STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, [], None) #1347768903 = 'STAT'
 
 end_time = time.time()                    
 elapsed_time = end_time - start_time
+
+
+
 logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
 for worldspace in LODGen:
@@ -2170,46 +2178,53 @@ for worldspace in LODGen:
                 if object_dict[obj[0]].sig == 'STAT':
                     if object_dict[obj[0]].model_filename.lower() in meshes_to_skip:
                         continue
+                    if skip_nif_generation:
+                        if not os.path.exists(os.path.join(folder, 'meshes\\MergedLOD\\', worldspace + '_' + str(i) + '_' + str(j) + '.nif')) and \
+                            not os.path.exists(os.path.join(folder, 'LODMerger\\meshes\\MergedLOD\\', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif')):
+                                continue
                     obj_to_merge.append(obj)
                     z_buffer += obj[1][2]
                     mergeable_count += 1
                     
 
             if mergeable_count > 1:
+                
                 average_z = z_buffer / mergeable_count
                 middle_of_cell = MiddleOfCellCalc(i, j)
-                merger.CleanTemplates()
-                for obj in obj_to_merge:
-                   
-                    mesh_file = object_dict[obj[0]].model_filename
-                    path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
-                    if not os.path.exists(path):
-                        path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
-                    position = [obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z]
-                    #radians to degrees
-                    rotations = [obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 ]
-                    scale = obj[3]
-                    if scale is None:
-                        scale = 1.0
-                    else:
-                        scale = scale[0]
-                    merger.ProcessNif(path, position, rotations, scale)
-                #merger.CleanAnimationController()
-                merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
-                shutil.copyfile(empty_nif_template, \
-                                os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
-                
-                record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
-                                        + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
-                STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
-                EDID_Template = Subrecord('EDID', len(record_edid), \
-                                        record_edid.encode('ascii'))
-                MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
-                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
-                STATRecord.subrecords.append(EDID_Template)
-                STATRecord.subrecords.append(MODL_Template)
-                STATRecord.subrecords.append(MODB_Template)
-                STAT_Group.records.append(STATRecord)
+
+                if not skip_nif_generation:
+                    merger.CleanTemplates()
+                    for obj in obj_to_merge:
+                    
+                        mesh_file = object_dict[obj[0]].model_filename
+                        path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
+                        if not os.path.exists(path):
+                            path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
+                        position = [obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z]
+                        #radians to degrees
+                        rotations = [obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 ]
+                        scale = obj[3]
+                        if scale is None:
+                            scale = 1.0
+                        else:
+                            scale = scale[0]
+                        merger.ProcessNif(path, position, rotations, scale)
+                    #merger.CleanAnimationController()
+                    merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
+                    shutil.copyfile(empty_nif_template, \
+                                    os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
+                    
+                    record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
+                                            + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
+                    STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
+                    EDID_Template = Subrecord('EDID', len(record_edid), \
+                                            record_edid.encode('ascii'))
+                    MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
+                                            ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
+                    STATRecord.subrecords.append(EDID_Template)
+                    STATRecord.subrecords.append(MODL_Template)
+                    STATRecord.subrecords.append(MODB_Template)
+                    STAT_Group.records.append(STATRecord)
                 
 
                 LODGen[worldspace][i][j] = [obj for obj in LODGen[worldspace][i][j] if obj not in obj_to_merge]
@@ -2232,14 +2247,14 @@ TES4Record.subrecords.append(CNAMTemplate)
 TES4Record.subrecords.append(SNAMTemplate)
 new_esp.records.append(TES4Record)
 new_esp.records.append(STAT_Group)
-modified_time = os.path.getmtime(os.path.join(folder, 'MergedLOD.esp'))
-new_esp.reconstruct(os.path.join(folder, 'MergedLOD.esp'))
-os.utime(os.path.join(folder, 'MergedLOD.esp'), (modified_time, modified_time))
+modified_time = os.path.getmtime(os.path.join(folder, 'MergedLOD.esm'))
+new_esp.reconstruct(os.path.join(folder, 'MergedLOD.esm'))
+os.utime(os.path.join(folder, 'MergedLOD.esm'), (modified_time, modified_time))
 
 logging.info('Removing temp _far nif files...')
 
-if os.path.exists(os.path.join(folder, 'meshes\\LODMerger')):
-    shutil.rmtree(os.path.join(folder, 'meshes\\LODMerger'))
+if os.path.exists(os.path.join(folder, 'LODMerger')):
+    shutil.rmtree(os.path.join(folder, 'LODMerger'))
 
 logging.info('Removing old LOD files...')
 

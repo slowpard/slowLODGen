@@ -1,9 +1,17 @@
 #path to *Data* folder, if empty, the script will fetch the path from the registry
+#default: ""
 game_folder: ""
 
 #path to plugins.txt file, if empty, the script will fetch the file from its default location
 #useful for people with several local Oblivion installs
+#default: ""
 plugins_txt_path: ""
+
+#skips mesh generation if set to True, *.lod files are still generated
+#useful for small LO updates that do not drastically affect LOD
+#or for cases when you need to move MergedLOD.esp
+#default: False
+skip_mesh_generation: False 
 
 #editorids of worldspaces for which merged meshes will not be generated
 worldspaces_to_skip:
