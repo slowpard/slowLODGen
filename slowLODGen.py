@@ -2279,8 +2279,11 @@ os.utime(os.path.join(folder, 'MergedLOD.esm'), (modified_time, modified_time))
 
 logging.info('Removing temp _far nif files...')
 
-if os.path.exists(os.path.join(folder, 'LODMerger')):
-    shutil.rmtree(os.path.join(folder, 'LODMerger'))
+try:
+    if os.path.exists(os.path.join(folder, 'LODMerger')):
+        shutil.rmtree(os.path.join(folder, 'LODMerger'))
+except:
+    print('Failed to remove temp _far folder.')
 
 logging.info('Removing old LOD files...')
 
