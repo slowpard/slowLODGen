@@ -2116,6 +2116,8 @@ for plugin in load_order:
             bsa_loadorder.append(file)
             
 for bsa in bsa_loadorder:
+    if not os.path.exists(bsa):
+        continue
     bsa_obj = BSAParser()
     logging.info(f'Reading BSA: {bsa}')
     bsa_obj.parse(os.path.join(folder, bsa))
