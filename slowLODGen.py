@@ -1616,6 +1616,10 @@ class Record:
     def renumber_formids(self, formid_chg_map, formid_map):
         formid_bytes = bytearray(self.form_id.to_bytes(4, 'big'))
         mod_id = formid_bytes[0]
+        if mod_id >= len(formid_chg_map):
+            logging.warning(f'HITME record detected! Local FormID: {hex(self.form_id)} \n' 
+                            'HITMEs most commonly occur when a master was improperly removed. The behavior of these plugins is undefined and may lead to them not working correctly or causing CTDs.')
+            mod_id = len(formid_chg_map) - 1
         if formid_chg_map[mod_id] != mod_id:
             old_formid = self.form_id
             formid_bytes[0] = formid_chg_map[mod_id]
