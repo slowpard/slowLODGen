@@ -1995,7 +1995,7 @@ def sort_esp_list(filepath, folder):
 
     def sorter(item):
         filename, extension, modified_time = item
-        is_esp = extension != '.esm'
+        is_esp = extension.lower() != '.esm'
         return(is_esp, modified_time)
     
     sorted_list = sorted(file_list, key=sorter)
@@ -2012,9 +2012,33 @@ object_dict = {}
 try:
     mergedLOD_index = load_order.index('MergedLOD.esm')
 except:
-    logging.critical('Error: MergedLOD.esm not found in load order')
-    exit()
+    logging.error('Error: MergedLOD.esm not found in load order')
+    if not os.path.exists(os.path.join(folder, 'MergedLOD.esm')):
+        logging.info('Creating MergedLOD.esm...')
+        shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'MergedLOD.esm'), folder)
+    logging.info('Adding MergedLOD.esm to load order...')
+    if load_order[1][-4:] == '.esm': #there are some esms that claim that they need to be in slot 01
+                                     #not really with EBF but whaterver
+        l_index = 2
+    else:
+        l_index = 1
+    mergedlod_time = os.path.getmtime(os.path.join(folder, load_order[l_index-1])) + 1
+    os.utime(os.path.join(folder, 'MergedLOD.esm'), (mergedlod_time, mergedlod_time))
+    with open(plugins_txt, 'r') as file:
+        lines = file.readlines()
+    if l_index < len(lines):
+        lines.insert(l_index, 'MergedLOD.esm' + '\n')
+    else:
+        lines.append('MergedLOD.esm' + '\n')
+    with open(plugins_txt, 'w') as file:
+        file.writelines(lines)
+    logging.critical(f'MegedLOD.esm is added to the load order at slot {l_index} \n'
+                     '!!MAKE SURE THAT WRYE BASH OR LOOT DOES NOT CHANGE THE SLOT!! \n'
+                     'If it happens, you will either need to manually fix the load order or rerun the utility \n'
+                     'with skip_mesh_generation: True to fix load order in *.lod files')
 
+load_order = sort_esp_list(plugins_txt, folder)
+mergedLOD_index = load_order.index('MergedLOD.esm')
 load_order_lowercase = [x.lower() for x in load_order]
 
 for plugin in load_order:
@@ -2241,7 +2265,7 @@ new_esp = ESPParser()
 HEDRTemplate = Subrecord('HEDR', 12, struct.pack('fII', 1.0, record_offset - 2048, record_offset))
 CNAMTemplate = Subrecord('CNAM', 7, b'LODGen\x00')
 SNAMTemplate = Subrecord('SNAM', 7, b'LODGen\x00')
-TES4Record = RecordTES4('TES4', 0, 0, 0, 0, b'', master_files=[])
+TES4Record = RecordTES4('TES4', 0, 1, 0, 0, b'', master_files=[]) #flags = 1 == esm
 TES4Record.subrecords.append(HEDRTemplate)
 TES4Record.subrecords.append(CNAMTemplate)
 TES4Record.subrecords.append(SNAMTemplate)
