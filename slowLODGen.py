@@ -9,16 +9,38 @@ from pyffi.utils.withref import ref
 import traceback
 import logging
 import csv
+import yaml
+
 
 start_time = time.time()
 
 #PATHS
 
-folder = 'F:\\SteamLibrary\\steamapps\\common\\Oblivion\\Data'
-plugins_txt = r'C:\Users\SLOWPARD\AppData\Local\Oblivion\plugins.txt'
-#empty_nif_template = r'S:\IC LOD Project\resources\empty_ninode.nif'
-empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'LODGen_config.yaml'), "r") as file:
+    config = yaml.safe_load(file)
+
+try:
+    folder = config["game_folder"]
+except:
+    folder = ""
+
+try:
+    plugins_txt = config["plugins_txt_path"]
+except:
+    plugins_txt = ""
+
+try:
+    worldspaces_to_skip = config["worldspaces_to_skip"]
+except:
+    worldspaces_to_skip = []
+
+try:
+    meshes_to_skip = config["meshes_to_skip"]
+except:
+    meshes_to_skip = []
+
+empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
 #pyffi has extremly abstract struct classes defined from xmls
 #this is a hack to make them *much* faster to work with 
@@ -258,7 +280,7 @@ if True:
         self.a.read(stream, data)
     pyffi.formats.nif.NifFormat.Color4.read = Color4_fast_read
 
-if False: 
+if False:  
     def TexCoord_fast_read(self, stream, data):
         self.u = self._u_value_
         self.v = self._v_value_
@@ -2065,6 +2087,8 @@ for obj_id in dict(sorted(object_dict.items())):
             if obj.baserecordformid in far_statics or obj.baserecordformid in far_trees:
                 if not obj.is_disabled(): #TODO: parent checks
                     worldspace = obj.parent_worldspace.editor_id
+                    if worldspace in worldspaces_to_skip:
+                        continue
                     if not worldspace in LODGen:
                         LODGen[worldspace] = {}
                     
@@ -2106,10 +2130,12 @@ for worldspace in LODGen:
             obj_to_merge = []
             for obj in LODGen[worldspace][i][j]:
                 if object_dict[obj[0]].sig == 'STAT':
+                    if object_dict[obj[0]].model_filename.lower() in meshes_to_skip:
+                        continue
                     obj_to_merge.append(obj)
                     z_buffer += obj[1][2]
                     mergeable_count += 1
-                
+                    
 
             if mergeable_count > 1:
                 average_z = z_buffer / mergeable_count
