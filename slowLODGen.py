@@ -1840,7 +1840,7 @@ class BSAParser():
         root,ext = os.path.splitext(fileName.lower()) #--"bob.dds" >> root = "bob", ext = ".dds"
         #--Hash1
         chars = [ord(x) for x in root] #map(ord,root) #--'bob' >> chars = [98,111,98]
-        
+
         if len(chars) > 1:
             hash1 = chars[-1] | (0,chars[-2])[len(chars)>2]<<8 | len(chars)<<16 | chars[0]<<24
         else:
@@ -2155,7 +2155,7 @@ for worldspace in LODGen:
                     else:
                         scale = scale[0]
                     merger.ProcessNif(path, position, rotations, scale)
-                merger.CleanAnimationController()
+                #merger.CleanAnimationController()
                 merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
                 shutil.copyfile(empty_nif_template, \
                                 os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
