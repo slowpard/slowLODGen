@@ -16,8 +16,20 @@ start_time = time.time()
 
 #PATHS
 
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'LODGen_config.yaml'), "r") as file:
+    config = yaml.safe_load(file)
+
+
+
+try:
+    debug_level = config["debug_level"]
+except:
+    debug_level = "INFO"
+
+
 logging.basicConfig(
-    level=logging.INFO,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    level=logging._nameToLevel[debug_level.upper()],  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     format='%(asctime)s - %(levelname)s - %(message)s',  
     handlers=[
         logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output.log')),  # Log to a file

@@ -15,6 +15,11 @@ plugins_txt_path: ""
 #default: False
 skip_mesh_generation: False 
 
+#controls the amount of messages generated in the console and in the log
+#"DEBUG" generates the most, "CRITICAL" generates the least
+#possible values: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+debug_level: "INFO"
+
 #editorids of worldspaces for which merged meshes will not be generated
 worldspaces_to_skip:
  - "AnvilWorld"
