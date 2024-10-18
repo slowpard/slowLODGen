@@ -2214,17 +2214,17 @@ for worldspace in LODGen:
                     shutil.copyfile(empty_nif_template, \
                                     os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
                     
-                    record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
+                record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
                                             + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
-                    STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
-                    EDID_Template = Subrecord('EDID', len(record_edid), \
-                                            record_edid.encode('ascii'))
-                    MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
-                                            ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
-                    STATRecord.subrecords.append(EDID_Template)
-                    STATRecord.subrecords.append(MODL_Template)
-                    STATRecord.subrecords.append(MODB_Template)
-                    STAT_Group.records.append(STATRecord)
+                STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
+                EDID_Template = Subrecord('EDID', len(record_edid), \
+                                        record_edid.encode('ascii'))
+                MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
+                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('ascii') + b'\x00')
+                STATRecord.subrecords.append(EDID_Template)
+                STATRecord.subrecords.append(MODL_Template)
+                STATRecord.subrecords.append(MODB_Template)
+                STAT_Group.records.append(STATRecord)
                 
 
                 LODGen[worldspace][i][j] = [obj for obj in LODGen[worldspace][i][j] if obj not in obj_to_merge]
