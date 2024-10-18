@@ -2159,9 +2159,9 @@ elapsed_time = end_time - start_time
 logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
 for worldspace in LODGen:
-    for i in LODGen[worldspace]:
+    for i in sorted(LODGen[worldspace]):
         logging.info(f'Processing {worldspace} [{i},*]')
-        for j in LODGen[worldspace][i]:
+        for j in sorted(LODGen[worldspace][i]):
             logging.debug(f'Processing {worldspace} [{i},{j}]')
             mergeable_count = 0
             z_buffer = 0
