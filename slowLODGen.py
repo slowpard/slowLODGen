@@ -1608,7 +1608,8 @@ class Record:
             old_formid = self.form_id
             formid_bytes[0] = formid_chg_map[mod_id]
             self.form_id = int.from_bytes(formid_bytes, 'big')
-            formid_map.pop(old_formid)
+            if old_formid in formid_map:
+                formid_map.pop(old_formid)
             formid_map[self.form_id] = self
     
 class RecordTES4(Record):
