@@ -11,6 +11,7 @@ import logging
 import csv
 import yaml
 
+import winreg
 
 start_time = time.time()
 
@@ -25,11 +26,36 @@ try:
 except:
     folder = ""
 
+if folder == "":
+    try:
+        registry_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Bethesda Softworks\Oblivion", 0, winreg.KEY_READ)
+        oblivion_path, _ = winreg.QueryValueEx(registry_key, "Installed Path")
+        winreg.CloseKey(registry_key)
+    except:
+        try:
+            registry_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Bethesda Softworks\Oblivion", 0, winreg.KEY_READ)
+            oblivion_path, _ = winreg.QueryValueEx(registry_key, "Installed Path")
+            winreg.CloseKey(registry_key)
+        except:
+            print("Oblivion folder not found, exiting...")
+            exit()
+    folder = os.path.join(oblivion_path, "data")
+
 try:
     plugins_txt = config["plugins_txt_path"]
 except:
     plugins_txt = ""
 
+if plugins_txt == "":
+    oblivion_plugins_path = os.path.join(os.getenv("USERPROFILE"), "AppData\Local\Oblivion", "plugins.txt")
+    if os.path.exists(oblivion_plugins_path):
+        plugins_txt = oblivion_plugins_path
+    else:
+        print("Plugins.txt not found, exiting...")
+        exit()
+
+print("Oblivion path:", folder)
+print("plugins.txt path:", plugins_txt)
 try:
     worldspaces_to_skip = config["worldspaces_to_skip"]
 except:
@@ -1728,7 +1754,7 @@ class ESPParser:
     def parse(self, filename):
         with open(filename, 'rb') as f:
             data = f.read()
-        self._parse_data(data)
+        self._parse_data(data)       
 
     def _parse_data(self, data, offset=0, end=None):
         if end is None:

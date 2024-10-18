@@ -1,6 +1,9 @@
-game_folder: "F:\\SteamLibrary\\steamapps\\common\\Oblivion\\Data"
+#path to *Data* folder, if empty, the script will fetch the path from the registry
+game_folder: ""
 
-plugins_txt_path: "C:\\Users\\SLOWPARD\\AppData\\Local\\Oblivion\\plugins.txt"
+#path to plugins.txt file, if empty, the script will fetch the file from its default location
+#useful for people with several local Oblivion installs
+plugins_txt_path: ""
 
 #editorids of worldspaces for which merged meshes will not be generated
 worldspaces_to_skip:
