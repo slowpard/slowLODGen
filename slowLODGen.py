@@ -10,12 +10,20 @@ import traceback
 import logging
 import csv
 import yaml
-
 import winreg
 
 start_time = time.time()
 
 #PATHS
+
+logging.basicConfig(
+    level=logging.INFO,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s',  
+    handlers=[
+        logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output.log')),  # Log to a file
+        logging.StreamHandler()             # Log to console
+    ]
+)
 
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'LODGen_config.yaml'), "r") as file:
@@ -37,7 +45,7 @@ if folder == "":
             oblivion_path, _ = winreg.QueryValueEx(registry_key, "Installed Path")
             winreg.CloseKey(registry_key)
         except:
-            print("Oblivion folder not found, exiting...")
+            logging.critical("Oblivion folder not found, exiting...")
             exit()
     folder = os.path.join(oblivion_path, "data")
 
@@ -47,15 +55,15 @@ except:
     plugins_txt = ""
 
 if plugins_txt == "":
-    oblivion_plugins_path = os.path.join(os.getenv("USERPROFILE"), "AppData\Local\Oblivion", "plugins.txt")
+    oblivion_plugins_path = os.path.join(os.getenv("USERPROFILE"), "AppData\\Local\\Oblivion", "plugins.txt")
     if os.path.exists(oblivion_plugins_path):
         plugins_txt = oblivion_plugins_path
     else:
-        print("Plugins.txt not found, exiting...")
+        logging.critical("Plugins.txt not found, exiting...")
         exit()
 
-print("Oblivion path:", folder)
-print("plugins.txt path:", plugins_txt)
+logging.info("Oblivion path: " + folder)
+logging.info("plugins.txt path: " + plugins_txt)
 try:
     worldspaces_to_skip = config["worldspaces_to_skip"]
 except:
@@ -568,17 +576,16 @@ class NifProcessor:
         if not tex_path:
             return None
         else:
-            #print(self.atlas_data)
             if str(tex_path.decode('UTF-8')).lower() in self.atlas_data:
                     
-                    print(f'Atlas found for shape {str(shape.name.decode("UTF-8"))}')
+                    logging.debug(f'Atlas found for shape {str(shape.name.decode("UTF-8"))}')
                     for uv in shape.data.uv_sets[0]:
                         limit = self.ATLAS_UV_COORDINATES_LIMIT
                         if ((uv.u > 1 + limit) or 
                             (uv.v > 1 + limit) or
                             (uv.u < -limit) or
                             (uv.v < -limit)):
-                            print(f'Shape {str(shape.name.decode("UTF-8"))} not atlassed - UVs out of bounds')
+                            logging.warning(f'Shape {str(shape.name.decode("UTF-8"))} not atlassed - UVs out of bounds')
                             return None
 
 
@@ -678,7 +685,7 @@ class NifProcessor:
                                         target_collision = n.collision_object
 
         if not target_collision:
-            print("creating new collision object with material ", material.material, " and layer ", layer)
+            logging.debug(f"creating new collision object with material {material.material} and layer {layer}")
             target_collision = self.create_lizardbox_object(material, layer=layer)
 
         target_packedtrishape = target_collision.body.shape.shape
@@ -717,7 +724,7 @@ class NifProcessor:
         if isinstance(node.shape, pyffi.formats.nif.NifFormat.bhkBoxShape):
             self.collisions_process_box_object(node.shape, translation, rotation, scale, material, layer, transform_matrix)
         else:
-            print("Unsupported collision geometry format in ConvextTransformShape: ", type(node.shape))
+            logging.warning(f"Unsupported collision geometry format in ConvextTransformShape: {type(node.shape)}")
             
 
     def process_collision_object(self, node, translation, rotation, scale):
@@ -749,7 +756,7 @@ class NifProcessor:
                     if isinstance(obj, pyffi.formats.nif.NifFormat.bhkConvexTransformShape):
                         self.collisions_process_bhkConvexTransformShape(obj, m_translation, m_rotation, f_scale, layer)
                     else:
-                        print("Unsupported collision node format in ListShape: ", type(obj))
+                        logging.warning(f"Unsupported collision node format in ListShape: {type(obj)}")
 
             elif isinstance(node.collision_object.body.shape, pyffi.formats.nif.NifFormat.bhkConvexVerticesShape):
                 target_collision = None 
@@ -799,9 +806,9 @@ class NifProcessor:
                             vertices_in_triangle.append(j)
                     #print(vertices_in_triangle)
                     if len(vertices_in_triangle) < 3:
-                        print("Skipping normal - less than 3 vertices in triangle. Try increasing self.CONVEX_PLANE_MAX_DISTANCE")
+                        logging.warning("Skipping normal - less than 3 vertices in triangle. Try increasing self.CONVEX_PLANE_MAX_DISTANCE")
                     elif len(vertices_in_triangle) > 4:
-                        print("Skipping normal - more than 4 vertices in triangle. Try decreasing self.CONVEX_PLANE_MAX_DISTANCE")
+                        logging.warning("Skipping normal - more than 4 vertices in triangle. Try decreasing self.CONVEX_PLANE_MAX_DISTANCE")
                     else:
                         temp_hkTriangle = pyffi.formats.nif.NifFormat.hkTriangle()
                         temp_hkTriangle.triangle.v_1 = vertices_in_triangle[0] + triangles_offset
@@ -897,7 +904,7 @@ class NifProcessor:
                                                     #print('Found matching collision object')
                     
                     if not target_collision:
-                        print("creating new collision object with material ", material.material, " and layer ", collision.body.havok_col_filter.layer)
+                        logging.debug(f"creating new collision object with material {material.material} and layer {collision.body.havok_col_filter.layer}")
                         target_collision = self.create_lizardbox_object(material, layer=collision.body.havok_col_filter.layer)
                     
                     shape_data = node.collision_object.body.shape.shape.data
@@ -936,7 +943,7 @@ class NifProcessor:
                     vertex_counter += num_vertices
 
             else:
-                print('Unsupported collision geometry format, only bhkPackedNiTriStripsShape or bhkConvexVerticesShape is supported')
+                logging.warning('Unsupported collision geometry format, only bhkPackedNiTriStripsShape or bhkConvexVerticesShape is supported')
 
 
     def process_animations(self, controller):
@@ -990,7 +997,7 @@ class NifProcessor:
                 elif isinstance(child, pyffi.formats.nif.NifFormat.NiTriStrips):
                     self.process_nif_trigeometry(child, m_translation, m_rotation, f_scale)
                 else:
-                    print("Unexpected type in NiNode: ", type(child))
+                    logging.warning("Unexpected type in NiNode: " + type(child))
                     
         except Exception as e:
             logging.error(traceback.format_exc())
@@ -1032,20 +1039,20 @@ class NifProcessor:
                     # flags : 0x28
                     # vertex_mode : VERT_MODE_SRC_AMB_DIF
                     # lighting_mode : LIGHT_MODE_EMI_AMB_DIF
-                    print("NiVertexColorProperty with non-standard parameters found, these parameters will be ignored! Given that the effect is likely very specialized, not something which should be merged automatically to begin with.")
+                    logging.warning("NiVertexColorProperty with non-standard parameters found, these parameters will be ignored! Given that the effect is likely very specialized, not something which should be merged automatically to begin with.")
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiSpecularProperty):
                 if property.flags == 0:
-                    print("NiSpecularProperty with specularity flag disabled, will be ignored (likely doesn't do anything in Oblivion to begin with)")
+                    logging.warningrint("NiSpecularProperty with specularity flag disabled, will be ignored (likely doesn't do anything in Oblivion to begin with)")
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiStencilProperty):
                 stencil_property = property
                 #if property.stencil_enabled == 1:
-                #print("NiStencilProperty, not supported yet, will be merged without applying stencil.")
+                #logging.warning("NiStencilProperty, not supported yet, will be merged without applying stencil.")
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiAlphaProperty):
                 alpha_found = True
                 alpha_flags = property.flags
                 alpha_threshold = property.threshold
             else:
-                print("Unknown/unsupported property in trishape: ", type(property))
+                logging.warning(f"Unknown/unsupported property in trishape: {type(property)}")
         #try:
         atlas_obj = self.ReturnAtlasData(trishape)
         #except:
@@ -1057,9 +1064,9 @@ class NifProcessor:
             return
         
         if (not texture_property) and (texture_path == ''):
-            print("Skipping shape: No texture found for trishape ", trishape.name)
+            logging.error(f"Skipping shape: No texture found for trishape {trishape.name}")
         elif not material_property:
-            print("Skipping shape: No material found for trishape ", trishape.name)
+            logging.error(f"Skipping shape: No material found for trishape {trishape.name}")
         else:        
             
             for shape in self.master_nif.roots[0].children:
@@ -1249,7 +1256,7 @@ class NifProcessor:
 
 
                 if len(target_shape.data.normals) < len(target_shape.data.vertices):
-                    print("WARNING: shape ", trishape.name, " doesn't have normals, dummy normals will be added. This will cause visual artifacts.")
+                    logging.warning(f"WARNING: shape {trishape.name} doesn't have normals, dummy normals will be added. This will cause visual artifacts.")
                 #just a workaround for missing normals crashing the saving routine
                 #shouldn't merge meshes like this to begin with, fix them with Blender first
                 while len(target_shape.data.normals) < len(target_shape.data.vertices):
@@ -1293,12 +1300,12 @@ class NifProcessor:
             elif isinstance(root, pyffi.formats.nif.NifFormat.NiTriStrips):
                 self.process_nif_trigeometry(root, m_translation, m_rotation, f_scale)
             else:
-                print("Unknown type in root node: ", type(root))
+                logging.error(f"Unknown type in root node: {type(root)}")
 
     def GenerateMoppObjects(self):
         if self.IGNORE_COLLISIONS:
             return
-        print('Creating mopp collision objects')
+        logging.info('Creating mopp collision objects')
         for n in self.master_nif.roots[0].children:
             if isinstance(n, pyffi.formats.nif.NifFormat.NiNode):
                 if n.collision_object:
@@ -1309,7 +1316,7 @@ class NifProcessor:
     def UpdateTangentSpaces(self):
         if self.SKIP_TANGENT_SPACE_GENERATION:
             return
-        print('Updating tangent spaces')
+        logging.info('Updating tangent spaces')
 
         for n in self.master_nif.roots[0].children:
 
@@ -1348,7 +1355,7 @@ class NifProcessor:
         
         
     def ProcessNif(self, nif_path, translation, rotation, scale):
-        #print('Processing ', nif_path, " at position ", translation)
+        logging.debug(f'Processing {nif_path} at position {translation}')
         if nif_path.endswith('.nif'):
             self.shapes_merged = 0
             try:
@@ -1361,17 +1368,17 @@ class NifProcessor:
                     self.merged_data.append([nif_path, self.shapes_merged])
                     stream.close()
                 except FileNotFoundError:
-                    print('File not found: ', nif_path)
+                    logging.error(f'File not found: {nif_path}')
             except Exception as e:
-                print('Error processing ', nif_path)
+                logging.info(f'Error processing {nif_path}')
                 logging.error(traceback.format_exc())
         else:
-            print('Not a NIF file! ', nif_path)
+            logging.error(f'Not a NIF file! {nif_path}')
 
     
     def SaveNif(self, nif_path):
 
-        print('Saving ', nif_path)
+        logging.debug(f'Saving {nif_path}')
         
         directory = os.path.dirname(nif_path)
         if not os.path.exists(directory):
@@ -1441,7 +1448,7 @@ class NifProcessor:
             if obj[2] > -25000 or (not self.IGNORE_LOW_Z_FOR_MERGING):
                 self.ProcessNif(os.path.join(mesh_repo, obj[7]), [obj[0] - x_offset, obj[1] - y_offset, obj[2] - z_offset], [obj[3], obj[4], obj[5]], obj[6])
             else:
-                print('Skipping ', obj[7], ' due to low Z value')
+                logging.warning(f'Skipping {obj[7]} due to low Z value')
 
         self.GenerateMoppObjects()
         self.UpdateTangentSpaces()
@@ -1458,7 +1465,7 @@ class NifProcessor:
             if obj[2] > -25000 or (not self.IGNORE_LOW_Z_FOR_MERGING):
                 self.ProcessNif(obj[0], [obj[1] - x_offset, obj[2] - y_offset, obj[3] - z_offset], [obj[4], obj[5], obj[6]], obj[7])
             else:
-                print('Skipping ', obj[0], ' due to low Z value')
+                logging.warning(f'Skipping {obj[0]} due to low Z value')
 
         self.GenerateMoppObjects()
         self.UpdateTangentSpaces()
@@ -1532,7 +1539,7 @@ class Record:
     FLAG_CANT_WAIT = 0x00080000 
 
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
-        #print('Creating a record')
+        #logging.debug('Creating a record')
         self.sig = sig  # str 4 bytes
         self.data_size = data_size      # uint32
         self.flags = flags              # uint32
@@ -1896,7 +1903,7 @@ class BSAParser():
         l_filenames, content_flags = struct.unpack_from('<4sIIIIIIII', data[:36], 0)
         
         if magic_number != b'BSA\x00':
-            print('Error: Not a BSA')
+            logging.error('Error: Not a BSA')
             return
         self.flags = flags
         #print(self.flags)
@@ -1915,7 +1922,7 @@ class BSAParser():
                 if filename != b'':
                     files[self.CalculateHash(filename.decode('ascii'))] = filename.decode('ascii')
             except:
-                print('Error: filename decoding error for ', filename)
+                logging.error(f'Error: filename decoding error for {filename}')
 
         #folders
         for folder_index in range(n_folders):
@@ -1934,7 +1941,7 @@ class BSAParser():
                     full_path = os.path.join(folder_path, file_name)
                     self.files[full_path] = (file_pointer, real_size, compression_flag)
                 except:
-                    print('Error: hashed file not found')
+                    logging.error('Error: hashed file not found')
 
 
     def get_list_of_files(self):
@@ -1962,7 +1969,7 @@ class BSAParser():
                     output_file.write(decompressed_file)
                     output_file.close()
                 else:
-                    print(f'Error: file {file} not found')
+                    logging.error(f'Error: file {file} not found')
         
 
 
@@ -1992,41 +1999,44 @@ def sort_esp_list(filepath, folder):
 
 load_order = sort_esp_list(plugins_txt, folder)
 
-print(load_order)
+logging.info(f'{load_order}')
 
 signatures = ['REFR', 'STAT', 'TREE']
 object_dict = {}
 
+try:
+    mergedLOD_index = load_order.index('MergedLOD.esp')
+except:
+    logging.critical('Error: MergedLOD.esp not found in load order')
+    exit()
 
-mergedLOD_index = load_order.index('MergedLOD.esp')
+load_order_lowercase = [x.lower() for x in load_order]
 
 for plugin in load_order:
     parser = ESPParser()
-    print('Reading', plugin)
+    logging.info('Reading: ' + plugin)
     parser.parse(os.path.join(folder, plugin))
     plugin_lo = parser.load_order
-    map = {}
+    master_map = {}
     try:
         for entry in plugin_lo:
-            index = load_order.index(entry[1])
-            map[entry[0]] = index
-        map[len(map)] = load_order.index(plugin)
+            index = load_order_lowercase.index(entry[1].lower())
+            master_map[entry[0]] = index
+        master_map[len(master_map)] = load_order_lowercase.index(plugin.lower())
     except ValueError:
-        print('Error: masters missing for plugin:', plugin)
-        continue
+        logging.critical(f'Error: masters missing for plugin: {plugin}')
+        logging.critical(f'Expected masters: {plugin_lo}')
+        exit()
 
-    if len(map) > 0:
-        if not all(key == value for key, value in map.items()):
-            #print('Renumbering formids for plugin:', plugin)
-            parser.renumber_formids(map)
-            #print('Renumbered')
+    if len(master_map) > 0:
+        if not all(key == value for key, value in master_map.items()):
+            parser.renumber_formids(master_map)
 
     for record in parser.formid_map:
         if parser.formid_map[record].sig in signatures:
             object_dict[record] = parser.formid_map[record]
-#gc.collect()
 
-print('Processing LOD files')
+logging.info('Processing LOD files')
 
 bsa_files = [f for f in os.listdir(folder) if f.endswith('.bsa')]
 
@@ -2043,7 +2053,7 @@ for plugin in load_order:
             
 for bsa in bsa_loadorder:
     bsa_obj = BSAParser()
-    print('Reading BSA:', bsa)
+    logging.info(f'Reading BSA: {bsa}')
     bsa_obj.parse(os.path.join(folder, bsa))
     list_to_extract = []
     for file in bsa_obj.get_list_of_files():
@@ -2058,13 +2068,13 @@ for bsa in bsa_loadorder:
             bsa_obj.extract(list_to_extract, os.path.join(folder, 'LODMerger'))
             far_mesh_list += list_to_extract
         except:
-            print('Failed to extract LOD files from', bsa)
+            logging.error(f'Failed to extract LOD files from {bsa}')
 
 
 far_statics = []
 far_trees = []
 
-print('Processing base objects...')
+logging.info('Processing base objects...')
 
 #going through every STAT and TREE and understanding if it can be VWD
 for obj in object_dict:
@@ -2104,7 +2114,7 @@ for obj in object_dict:
 
 LODGen = {}
 
-print('Generating list of LOD objects..')
+logging.info('Generating list of LOD objects..')
 
 for obj_id in dict(sorted(object_dict.items())):
     obj = object_dict[obj_id]
@@ -2146,11 +2156,13 @@ STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, [], None) #1347768903 = 'STAT'
 
 end_time = time.time()                    
 elapsed_time = end_time - start_time
-print(f"Mesh generation started: {elapsed_time:.6f} seconds")
+logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
 for worldspace in LODGen:
     for i in LODGen[worldspace]:
+        logging.info(f'Processing {worldspace} [{i},*]')
         for j in LODGen[worldspace][i]:
+            logging.debug(f'Processing {worldspace} [{i},{j}]')
             mergeable_count = 0
             z_buffer = 0
             obj_to_merge = []
@@ -2168,6 +2180,7 @@ for worldspace in LODGen:
                 middle_of_cell = MiddleOfCellCalc(i, j)
                 merger.CleanTemplates()
                 for obj in obj_to_merge:
+                   
                     mesh_file = object_dict[obj[0]].model_filename
                     path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                     if not os.path.exists(path):
@@ -2206,7 +2219,7 @@ for worldspace in LODGen:
 
 end_time = time.time()                    
 elapsed_time = end_time - start_time
-print(f"Meshes generated: {elapsed_time:.6f} seconds")
+logging.info(f"Meshes generated: {elapsed_time:.6f} seconds")
 
 new_esp = ESPParser()
 
@@ -2223,8 +2236,12 @@ modified_time = os.path.getmtime(os.path.join(folder, 'MergedLOD.esp'))
 new_esp.reconstruct(os.path.join(folder, 'MergedLOD.esp'))
 os.utime(os.path.join(folder, 'MergedLOD.esp'), (modified_time, modified_time))
 
+logging.info('Removing temp _far nif files...')
 
-print('Removing old LOD files...')
+if os.path.exists(os.path.join(folder, 'meshes\\LODMerger')):
+    shutil.rmtree(os.path.join(folder, 'meshes\\LODMerger'))
+
+logging.info('Removing old LOD files...')
 
 if os.path.exists(os.path.join(folder, 'distantlod')):
     shutil.rmtree(os.path.join(folder, 'distantlod'))
@@ -2233,7 +2250,7 @@ os.makedirs(os.path.join(folder, 'distantlod'))
 
 
 for worldspace in LODGen:
-    print('Writing LOD for ', worldspace)
+    logging.info('Writing LOD for ' + worldspace)
     with open(os.path.join(folder, 'distantlod', worldspace + ".cmp"), 'wb') as cmp:
 
         for i in LODGen[worldspace]:
@@ -2299,4 +2316,4 @@ for worldspace in LODGen:
 
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"Finished in {elapsed_time:.6f} seconds")
+logging.info(f"Finished in {elapsed_time:.6f} seconds")
