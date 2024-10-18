@@ -2041,6 +2041,11 @@ except:
 
 load_order = sort_esp_list(plugins_txt, folder)
 mergedLOD_index = load_order.index('MergedLOD.esm')
+
+if mergedLOD_index == 0:
+    logging.critical('Error: MergedLOD.esm is the first mod in your load order (before Oblivion.esm). Fix your load order.')
+    exit()
+
 load_order_lowercase = [x.lower() for x in load_order]
 
 for plugin in load_order:
