@@ -73,3 +73,8 @@ hardcoded_bsas:
  - "Oblivion - Meshes.bsa"
  - "Oblivion - Misc.bsa"
  - "Oblivion - Textures - Compressed.bsa"
+ - "N - Meshes.bsa"
+ - "N - Textures1.bsa"
+ - "N - Textures2.bsa"
+ - "N - Misc.bsa"
+ 

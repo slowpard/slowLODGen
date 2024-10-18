@@ -94,7 +94,8 @@ except:
 try:
     hardcoded_bsas = config["hardcoded_bsas"]
 except:
-    hardcoded_bsas = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa']
+    hardcoded_bsas = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa',
+                      'N - Meshes.bsa', 'N - Textures1.bsa', 'N - Textures2.bsa', 'N - Misc.bsa']
 
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
@@ -2124,7 +2125,6 @@ for plugin in load_order:
             bsa_loadorder.append(file)
             
 for bsa in bsa_loadorder:
-    logging.info(f'Reading BSA: {bsa}')
     if not os.path.exists(os.path.join(folder, bsa)):
         continue
     bsa_obj = BSAParser()
