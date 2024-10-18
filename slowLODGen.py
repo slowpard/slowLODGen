@@ -1610,6 +1610,9 @@ class Record:
             self.form_id = int.from_bytes(formid_bytes, 'big')
             if old_formid in formid_map:
                 formid_map.pop(old_formid)
+            else:
+                logging.warning(f'Warning: FormID {hex(self.form_id)} is used twice. \n'
+                                'The behavior of plugins with such records is undefined and may lead to them not working correctly or causing CTDs.')
             formid_map[self.form_id] = self
     
 class RecordTES4(Record):
@@ -1661,12 +1664,20 @@ class RecordREFR(Record):
         if self.parentformid:
             formid_bytes = bytearray(self.parentformid.to_bytes(4, 'big'))
             mod_id = formid_bytes[0]
+            if mod_id >= len(formid_chg_map):
+                logging.warning(f'HITME record detected! Local FormID: {hex(self.form_id)} \n' 
+                                'HITMEs most commonly occur when a master was improperly removed. The behavior of these plugins is undefined and may lead to them not working correctly or causing CTDs.')
+                mod_id = len(formid_chg_map) - 1
             if formid_chg_map[mod_id] != mod_id:
                 formid_bytes[0] = formid_chg_map[mod_id]
                 self.parentformid = int.from_bytes(formid_bytes, 'big')
         if self.baserecordformid:
             formid_bytes = bytearray(self.baserecordformid.to_bytes(4, 'big'))
             mod_id = formid_bytes[0]
+            if mod_id >= len(formid_chg_map):
+                logging.warning(f'HITME record detected! Local FormID: {hex(self.form_id)} \n' 
+                                'HITMEs most commonly occur when a master was improperly removed. The behavior of these plugins is undefined and may lead to them not working correctly or causing CTDs.')
+                mod_id = len(formid_chg_map) - 1
             if formid_chg_map[mod_id] != mod_id:
                 formid_bytes[0] = formid_chg_map[mod_id]
                 self.baserecordformid = int.from_bytes(formid_bytes, 'big')
