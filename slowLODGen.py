@@ -783,9 +783,11 @@ for obj_id in dict(sorted(object_dict.items())):
                     
                     x_cell = math.floor(obj.position[0] / 4096)
                     if abs(x_cell) > 1000:
+                        logging.warning(f'Object {hex(obj.form_id)} is out of bounds.')
                         continue
                     y_cell = math.floor(obj.position[1] / 4096)
                     if abs(y_cell) > 1000:
+                        logging.warning(f'Object {hex(obj.form_id)} is out of bounds.')
                         continue
                     if not x_cell in LODGen[worldspace]:
                         LODGen[worldspace][x_cell] = {}
