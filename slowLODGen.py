@@ -369,57 +369,75 @@ class ESPParser:
 
     def parse(self, filename):
         with open(filename, 'rb') as f:
-            data = f.read()
-        self._parse_data(data)       
+            self._parse_data(f)       
 
-    def _parse_data(self, data, offset=0, end=None):
-        if end is None:
-            end = len(data)
-        while offset < end:
-            record_type = data[offset:offset+4].decode('utf-8')
+    def _parse_data(self, f):
+        while True:
+            offset = f.tell()
+            record_type_b = f.read(4)
+            if not record_type_b or len(record_type_b) < 4:
+                break
+            record_type = record_type_b.decode('utf-8')
             if record_type == 'GRUP':
-                group_size = struct.unpack_from('<I', data, offset+4)[0]
-                group_end = offset + group_size
-                label, group_type, vc_info = struct.unpack_from('<III', data, offset+8)
+                group_size_bytes = f.read(4)
+                if not group_size_bytes or len(group_size_bytes) < 4:
+                    break
+                group_size = struct.unpack('<I', group_size_bytes)[0]
+                header_b = f.read(12)
+                if not header_b or len(header_b) < 12:
+                    break
+                label, group_type, vc_info = struct.unpack('<III', header_b)
                 group = Group(record_type, group_size, label, group_type, vc_info, [], None)
-                offset += 20  
-                self._parse_group(data, offset, group_end, group)
+                group_end = offset + group_size
+                self._parse_group(f, group_end, group)
                 self.records.append(group)
-                offset = group_end
+                f.seek(group_end)
             else:
-                record = self._parse_record(data, offset, self)
+                f.seek(offset)
+                record = self._parse_record(f, self)
                 self.records.append(record)
                 self.formid_map[record.form_id] = record
-                offset += 20 + record.data_size  # 20 bytes header + data
+                f.seek(offset + 20 + record.data_size)  # 20 bytes header + data
 
-    def _parse_group(self, data, offset, end, group):
-        while offset < end:
-            record_type = data[offset:offset+4].decode('utf-8')
+    def _parse_group(self, f, end, group):
+        while f.tell() < end:
+            offset = f.tell()
+            record_type_b = f.read(4)
+            if not record_type_b or len(record_type_b) < 4:
+                break
+            record_type = record_type_b.decode('utf-8')
             if record_type == 'GRUP':
-                group_size = struct.unpack_from('<I', data, offset+4)[0]
-                group_end = offset + group_size
-                label, group_type, vc_info = struct.unpack_from('<III', data, offset+8)
+                group_size_bytes = f.read(4)
+                group_size = struct.unpack('<I', group_size_bytes)[0]
+                label_b = f.read(12)
+                label, group_type, vc_info = struct.unpack('<III', label_b)
                 subgroup = Group(record_type, group_size, label, group_type, vc_info, [], group.parent_worldspace)
-                offset += 20  
-                self._parse_group(data, offset, group_end, subgroup)
+                group_end = offset + group_size 
+                self._parse_group(f, group_end, subgroup)
                 group.records.append(subgroup)
-                offset = group_end
+                f.seek(group_end)
             else:
-                record = self._parse_record(data, offset, group)
+                f.seek(offset) 
+                record = self._parse_record(f, group)
                 if record.sig == 'WRLD':
                     group.parent_worldspace = record
                 group.records.append(record)
                 self.formid_map[record.form_id] = record
-                offset += 20 + record.data_size
-
-    def _parse_record(self, data, offset, parent_group):
-        header = struct.unpack_from('<4sIIII', data, offset)
+                f.seek(offset + 20 + record.data_size)  # 20 bytes header + data
+                
+    def _parse_record(self, f, parent_group):
+        offset = f.tell()
+        header_b = f.read(20)
+        if not header_b or len(header_b) < 20:
+            return None
+        header = struct.unpack('<4sIIII', header_b)
         record_type = header[0].decode('utf-8')
         data_size = header[1]
         flags = header[2]
         form_id = header[3]
         vc_info = header[4]
-        record_data = data[offset+20:offset+20+data_size]
+        if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL'):
+            record_data = f.read(data_size)
         if record_type == 'REFR':
             return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group.parent_worldspace)
         elif record_type == 'STAT':
@@ -433,7 +451,7 @@ class ESPParser:
             for i, master in enumerate(TES4Record.master_files):
                 self.load_order.append([i, master])
             return TES4Record
-        elif record_type == 'ACHR' or record_type == 'ACRE' or record_type == 'CELL':
+        elif record_type in ('ACHR', 'ACRE', 'CELL'):
             return Record(record_type, data_size, flags, form_id, vc_info, record_data)
         else:
             return RecordUseless(record_type, data_size, flags, form_id, vc_info, None)
