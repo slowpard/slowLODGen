@@ -1223,9 +1223,13 @@ class NifProcessor:
         m_rotation = self.MatrixfromEulerAngles_zyx(rotation[0], rotation[1], rotation[2])
         f_scale = scale #1.0
         for root in data.roots:
-
-            if root.controller:
-                self.process_animations(root.controller)
+            
+            if not self.IGNORE_AWLS:
+                try:
+                    if root.controller:
+                        self.process_animations(root.controller)
+                except:
+                    pass
             
             if isinstance(root, pyffi.formats.nif.NifFormat.NiNode):
                 self.process_nif_node(root, m_translation, m_rotation, f_scale)
