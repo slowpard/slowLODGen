@@ -1,17 +1,15 @@
 import os
 import time
 time.clock = time.time #hack as time.clock is not available since python 3.8, open-source and backward compatibility... :cry:
-import pyffi.spells.nif.modify
-import pyffi.formats.nif
 import math
-import numpy as np
-from pyffi.utils.withref import ref
-import traceback
 import logging
-import csv
 import yaml
 import winreg
-import processors.NifProcessor as NifProcessor
+import struct
+import zlib
+import math
+import shutil
+from processors.NifProcessor import NifProcessor
 
 start_time = time.time()
 
@@ -106,12 +104,6 @@ empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'r
 
 
 
-import struct
-import os 
-import zlib
-import os
-import math
-import shutil
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
         self.sig = sig   # str 4 bytes
