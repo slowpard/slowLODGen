@@ -57,14 +57,6 @@ worldspaces_to_skip:
 
 #meshes that are not going to be merged -- lowercase without _far
 meshes_to_skip:
- - "ulay\\lodwaterplane.nif"
- - "ulbr\\lodwaterplane.nif"
- - "xulac\\lodwaterplane.nif"
- - "xulaw\\lodwaterplane.nif"
- - "xulcflodwaterplane\\lodwaterplane.nif"
- - "xulfe\\lodwaterplane.nif"
- - "xulimpisle\\lodwaterplane.nif"
- - "xulso\\waterlod\\lodwaterplane.nif"
  - "oblivion\\environment\\fxoblivionlightbeamlong01.nif"
  - "ICLOD\\ICMarket.nif"
  - "ICLOD\\ICTalosPlaza.nif"

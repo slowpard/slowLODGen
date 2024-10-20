@@ -956,6 +956,8 @@ class NifProcessor:
         material_property = None
         alpha_found = False
         atlas_obj = None
+        is_lava = False
+        texture_apply_mode = -1
         for property in trishape.properties:
             if isinstance(property, pyffi.formats.nif.NifFormat.NiTexturingProperty):
                 texture_path = str(property.base_texture.source.file_name.decode('windows-1252'))
@@ -968,6 +970,8 @@ class NifProcessor:
                 material_glossiness = property.glossiness
                 material_alpha = property.alpha
                 material_property = property
+                if material_name.lower() == 'lava':
+                    is_lava = True
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiVertexColorProperty):
                 if (property.flags != 40 and property.flags != 0) or property.vertex_mode != 2 or property.lighting_mode != 1:
                     #non-default values for vertex color -- not supported yet
@@ -1018,7 +1022,7 @@ class NifProcessor:
                 specular_c_check = False
                 emissive_c_check = False
                 alpha_check = False
-
+                lava_check = not is_lava
                 if alpha_found:
                     alpha_check = False
                 else:
@@ -1057,7 +1061,11 @@ class NifProcessor:
                             else:
                                 specular_c_check = self.ColorComparer(material_property.specular_color, k.specular_color, self.MATERIAL_COLOR_MERGING_DISTANCE) 
 
-                            emissive_c_check = self.ColorComparer(material_property.emissive_color, k.emissive_color, self.MATERIAL_COLOR_MERGING_DISTANCE) 
+                            emissive_c_check = self.ColorComparer(material_property.emissive_color, k.emissive_color, self.MATERIAL_COLOR_MERGING_DISTANCE)
+
+                            if k.name.decode('windows-1252').lower() == 'lava':
+                                lava_check = True
+                            
                         elif isinstance(k, pyffi.formats.nif.NifFormat.NiStencilProperty):
                             if not stencil_property:
                                 stencil_check = False
