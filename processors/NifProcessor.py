@@ -343,6 +343,7 @@ class NifProcessor:
         self.merged_data = []
         self.shapes_merged = 0
         self.atlas_data = {}
+        self.current_nif_path = ''
 
 
     def MatrixfromEulerAngles(self, x, y, z):
@@ -512,14 +513,14 @@ class NifProcessor:
         else:
             if str(tex_path.decode('windows-1252')).lower() in self.atlas_data:
                     
-                    logging.debug(f'Atlas found for shape {str(shape.name.decode("windows-1252"))}')
+                    logging.debug(f'{self.current_nif_path}: Atlas found for shape {str(shape.name.decode("windows-1252"))}')
                     for uv in shape.data.uv_sets[0]:
                         limit = self.ATLAS_UV_COORDINATES_LIMIT
                         if ((uv.u > 1 + limit) or 
                             (uv.v > 1 + limit) or
                             (uv.u < -limit) or
                             (uv.v < -limit)):
-                            logging.warning(f'Shape {str(shape.name.decode("windows-1252"))} not atlassed - UVs out of bounds')
+                            logging.warning(f'{self.current_nif_path}: Shape {str(shape.name.decode("windows-1252"))} not atlassed - UVs out of bounds')
                             return None
 
 
@@ -658,7 +659,7 @@ class NifProcessor:
         if isinstance(node.shape, pyffi.formats.nif.NifFormat.bhkBoxShape):
             self.collisions_process_box_object(node.shape, translation, rotation, scale, material, layer, transform_matrix)
         else:
-            logging.warning(f"Unsupported collision geometry format in ConvextTransformShape: {type(node.shape)}")
+            logging.warning(f"{self.current_nif_path}: Unsupported collision geometry format in ConvextTransformShape: {type(node.shape)}")
             
 
     def process_collision_object(self, node, translation, rotation, scale):
@@ -690,7 +691,7 @@ class NifProcessor:
                     if isinstance(obj, pyffi.formats.nif.NifFormat.bhkConvexTransformShape):
                         self.collisions_process_bhkConvexTransformShape(obj, m_translation, m_rotation, f_scale, layer)
                     else:
-                        logging.warning(f"Unsupported collision node format in ListShape: {type(obj)}")
+                        logging.warning(f"{self.current_nif_path}: Unsupported collision node format in ListShape: {type(obj)}")
 
             elif isinstance(node.collision_object.body.shape, pyffi.formats.nif.NifFormat.bhkConvexVerticesShape):
                 target_collision = None 
@@ -740,9 +741,9 @@ class NifProcessor:
                             vertices_in_triangle.append(j)
                     #print(vertices_in_triangle)
                     if len(vertices_in_triangle) < 3:
-                        logging.warning("Skipping normal - less than 3 vertices in triangle. Try increasing self.CONVEX_PLANE_MAX_DISTANCE")
+                        logging.warning(f"{self.current_nif_path}: Skipping normal - less than 3 vertices in triangle. Try increasing self.CONVEX_PLANE_MAX_DISTANCE")
                     elif len(vertices_in_triangle) > 4:
-                        logging.warning("Skipping normal - more than 4 vertices in triangle. Try decreasing self.CONVEX_PLANE_MAX_DISTANCE")
+                        logging.warning(f"{self.current_nif_path}: Skipping normal - more than 4 vertices in triangle. Try decreasing self.CONVEX_PLANE_MAX_DISTANCE")
                     else:
                         temp_hkTriangle = pyffi.formats.nif.NifFormat.hkTriangle()
                         temp_hkTriangle.triangle.v_1 = vertices_in_triangle[0] + triangles_offset
@@ -877,7 +878,7 @@ class NifProcessor:
                     vertex_counter += num_vertices
 
             else:
-                logging.warning('Unsupported collision geometry format, only bhkPackedNiTriStripsShape or bhkConvexVerticesShape is supported')
+                logging.warning(f'{self.current_nif_path}: Unsupported collision geometry format, only bhkPackedNiTriStripsShape or bhkConvexVerticesShape is supported')
 
 
     def process_animations(self, controller):
@@ -931,7 +932,7 @@ class NifProcessor:
                 elif isinstance(child, pyffi.formats.nif.NifFormat.NiTriStrips):
                     self.process_nif_trigeometry(child, m_translation, m_rotation, f_scale)
                 else:
-                    logging.warning(f"Unexpected type in NiNode: {type(child)}")
+                    logging.warning(f"{self.current_nif_path}: Unexpected type in NiNode: {type(child)}")
                     
         except Exception as e:
             logging.error(traceback.format_exc())
@@ -973,10 +974,10 @@ class NifProcessor:
                     # flags : 0x28
                     # vertex_mode : VERT_MODE_SRC_AMB_DIF
                     # lighting_mode : LIGHT_MODE_EMI_AMB_DIF
-                    logging.warning("NiVertexColorProperty with non-standard parameters found, these parameters will be ignored! Given that the effect is likely very specialized, not something which should be merged automatically to begin with.")
+                    logging.warning(f"{self.current_nif_path}: NiVertexColorProperty with non-standard parameters found, these parameters will be ignored! Given that the effect is likely very specialized, not something which should be merged automatically to begin with.")
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiSpecularProperty):
                 if property.flags == 0:
-                    logging.warningrint("NiSpecularProperty with specularity flag disabled, will be ignored (likely doesn't do anything in Oblivion to begin with)")
+                    logging.warningrint(f"{self.current_nif_path}: NiSpecularProperty with specularity flag disabled, will be ignored (likely doesn't do anything in Oblivion to begin with)")
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiStencilProperty):
                 stencil_property = property
                 #if property.stencil_enabled == 1:
@@ -986,7 +987,7 @@ class NifProcessor:
                 alpha_flags = property.flags
                 alpha_threshold = property.threshold
             else:
-                logging.warning(f"Unknown/unsupported property in trishape: {type(property)}")
+                logging.warning(f"{self.current_nif_path}: Unknown/unsupported property in trishape: {type(property)}")
         #try:
         atlas_obj = self.ReturnAtlasData(trishape)
         #except:
@@ -997,10 +998,10 @@ class NifProcessor:
         elif self.MERGE_ATLASSED_SHAPES_ONLY:
             return
         
-        if (not texture_property) and (texture_path == ''):
-            logging.error(f"Skipping shape: No texture found for trishape {trishape.name}")
+        if (not texture_property) and (texture_path == '') and (not is_lava):
+            logging.error(f"{self.current_nif_path}: Skipping shape: No texture found for trishape {trishape.name}")
         elif not material_property:
-            logging.error(f"Skipping shape: No material found for trishape {trishape.name}")
+            logging.error(f"{self.current_nif_path}: Skipping shape: No material found for trishape {trishape.name}")
         else:        
             
             for shape in self.master_nif.roots[0].children:
@@ -1071,9 +1072,9 @@ class NifProcessor:
                             else:
                                 if alpha_flags == k.flags and alpha_threshold == k.threshold:
                                     alpha_check = True
-                
+
                     if texture_check and material_g_check and material_a_check and tr_points_check and triag_check and poly_check and apply_mode_check \
-                        and ambient_c_check and diffuse_c_check and specular_c_check and emissive_c_check and stencil_check and alpha_check:
+                        and ambient_c_check and diffuse_c_check and specular_c_check and emissive_c_check and stencil_check and alpha_check and lava_check:
                         target_shape = shape
                         break
 
@@ -1190,7 +1191,7 @@ class NifProcessor:
 
 
                 if len(target_shape.data.normals) < len(target_shape.data.vertices):
-                    logging.warning(f"WARNING: shape {trishape.name} doesn't have normals, dummy normals will be added. This will cause visual artifacts.")
+                    logging.warning(f"{self.current_nif_path}: WARNING: shape {trishape.name} doesn't have normals, dummy normals will be added. This will cause visual artifacts.")
                 #just a workaround for missing normals crashing the saving routine
                 #shouldn't merge meshes like this to begin with, fix them with Blender first
                 while len(target_shape.data.normals) < len(target_shape.data.vertices):
@@ -1238,7 +1239,7 @@ class NifProcessor:
             elif isinstance(root, pyffi.formats.nif.NifFormat.NiTriStrips):
                 self.process_nif_trigeometry(root, m_translation, m_rotation, f_scale)
             else:
-                logging.error(f"Unknown type in root node: {type(root)}")
+                logging.error(f"{self.current_nif_path}: Unknown type in root node: {type(root)}")
 
     def GenerateMoppObjects(self):
         if self.IGNORE_COLLISIONS:
@@ -1294,6 +1295,7 @@ class NifProcessor:
         
     def ProcessNif(self, nif_path, translation, rotation, scale):
         logging.debug(f'Processing {nif_path} at position {translation}')
+        self.current_nif_path = nif_path
         if nif_path.endswith('.nif'):
             self.shapes_merged = 0
             try:
