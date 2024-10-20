@@ -92,6 +92,9 @@ try:
 except:
     meshes_to_skip = []
 
+for mesh in meshes_to_skip:
+    mesh = mesh.lower()
+
 try:
     hardcoded_bsas = config["hardcoded_bsas"]
 except:
