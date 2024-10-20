@@ -327,6 +327,8 @@ class RecordUseless(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
         #print('Creating a record')
         self.sig = sig  # str 4 bytes
+        if sig == 'REFR':
+            self.sig = 'REFU'
         self.data_size = data_size      # uint32
         self.flags = flags              # uint32
         self.form_id = form_id          # uint32
@@ -398,6 +400,7 @@ class ESPParser:
                 self.records.append(record)
                 self.formid_map[record.form_id] = record
                 f.seek(offset + 20 + record.data_size)  # 20 bytes header + data
+    
     def _parse_group(self, f, end, group):
         while f.tell() < end:
             offset = f.tell()
@@ -437,7 +440,7 @@ class ESPParser:
         vc_info = header[4]
         if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL'):
             record_data = f.read(data_size)
-        if record_type == 'REFR':
+        if record_type == 'REFR' and parent_group.parent_worldspace:
             return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group.parent_worldspace)
         elif record_type == 'STAT':
             return RecordSTAT(record_type, data_size, flags, form_id, vc_info, record_data)
@@ -641,6 +644,7 @@ except:
         shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'MergedLOD.esm'), folder)
     logging.info('Adding MergedLOD.esm to load order...')
     if load_order[1][-4:] == '.esm': #there are some esms that claim that they need to be in slot 01
+                                    #not really with EBF but whaterver
         l_index = 2
     else:
         l_index = 1
