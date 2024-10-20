@@ -1120,14 +1120,14 @@ class NifProcessor:
                         k.a = 1.0
 
 
-                vertice_list = []    
-                for vertice in trishape.data.vertices:
+                vertice_list = vertice_list = np.zeros((len(trishape.data.vertices), 3))   
+                for i, vertice in enumerate(trishape.data.vertices):
                     temp_vertice = pyffi.formats.nif.NifFormat.Vector3()
                     adjusted_vector = np.matmul(f_scale * np.array([vertice.x, vertice.y, vertice.z]), m_rotation)
                     temp_vertice.x = adjusted_vector[0] + m_translation[0]
                     temp_vertice.y = adjusted_vector[1] + m_translation[1]
                     temp_vertice.z = adjusted_vector[2] + m_translation[2]
-                    vertice_list.append(np.add(adjusted_vector, m_translation))                          
+                    vertice_list[i] = np.add(adjusted_vector, m_translation)                          
                     target_shape.data.vertices.append(temp_vertice)
 
                 average_point = np.mean(vertice_list, axis=0)
@@ -1136,7 +1136,8 @@ class NifProcessor:
                 target_shape.data.center.y = average_point[1]
                 target_shape.data.center.z = average_point[2]
                 target_shape.data.radius = distance
-                
+                vertice_list = None
+                               
 
                 for normal in trishape.data.normals:
                     normal_vector = np.matmul(np.array([normal.x, normal.y, normal.z]), m_rotation)
@@ -1307,6 +1308,8 @@ class NifProcessor:
                     #print('Shapes merged: ', str(self.shapes_merged))
                     self.merged_data.append([nif_path, self.shapes_merged])
                     stream.close()
+                    data = None
+                    stream = None
                 except FileNotFoundError:
                     logging.error(f'File not found: {nif_path}')
             except Exception as e:
@@ -1328,6 +1331,9 @@ class NifProcessor:
         self.master_nif.write(new_stream)
         new_stream.close()
         self.nif_template.close()
+        new_stream = None
+        self.master_nif = None
+        self.nif_template = None
 
     def CleanTemplates(self):
         
