@@ -31,11 +31,12 @@ except:
 
 logging.basicConfig(
     level=logging._nameToLevel[debug_level.upper()],  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format='%(asctime)s - %(levelname)s - %(message)s',  
+    format='%(asctime)s - %(lineno)s - %(levelname)s - %(message)s',  
     handlers=[
         logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output.log'), mode='w'),  # Log to a file
         logging.StreamHandler()             # Log to console
-    ]
+    ],
+    datefmt='%H:%M:%S'
 )
 
 
