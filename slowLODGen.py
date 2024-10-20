@@ -10,6 +10,8 @@ import zlib
 import math
 import shutil
 from processors.NifProcessor import NifProcessor
+import gc
+
 
 start_time = time.time()
 
@@ -898,6 +900,9 @@ for worldspace in LODGen:
 
                 record_offset += 1
 
+    gc.collect()    #doing it every cell causes performance issues
+                    #but it is still needed as Python doesn't clean memory properly in loops like that
+
 end_time = time.time()                    
 elapsed_time = end_time - start_time
 logging.info(f"Meshes generated: {elapsed_time:.6f} seconds")
@@ -1000,3 +1005,4 @@ for worldspace in LODGen:
 
 end_time = time.time()
 elapsed_time = end_time - start_time
+logging.info(f"Finished in {elapsed_time:.6f} seconds")
