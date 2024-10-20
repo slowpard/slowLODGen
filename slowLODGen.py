@@ -1009,3 +1009,4 @@ for worldspace in LODGen:
 end_time = time.time()
 elapsed_time = end_time - start_time
 logging.info(f"Finished in {elapsed_time:.6f} seconds")
+logging.info(f'IMPORTANT: make sure that MergedLOD.esm is loaded in position {mergedLOD_index:02X}')
