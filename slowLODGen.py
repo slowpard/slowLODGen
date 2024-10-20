@@ -655,9 +655,9 @@ except:
     with open(plugins_txt, 'w') as file:
         file.writelines(lines)
     logging.critical(f'MegedLOD.esm is added to the load order at slot {l_index} \n'
-                     '!!MAKE SURE THAT WRYE BASH OR LOOT DOES NOT CHANGE THE SLOT!! \n'
-                     'If it happens, you will either need to manually fix the load order or rerun the utility \n'
-                     'with skip_mesh_generation: True to fix load order in *.lod files')
+                    '!!MAKE SURE THAT WRYE BASH OR LOOT DOES NOT CHANGE THE SLOT!! \n'
+                    'If it happens, you will either need to manually fix the load order or rerun the utility \n'
+                    'with skip_mesh_generation: True to fix load order in *.lod files')
 
 load_order = sort_esp_list(plugins_txt, folder)
 mergedLOD_index = load_order.index('MergedLOD.esm')
