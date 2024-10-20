@@ -94,7 +94,7 @@ try:
     hardcoded_bsas = config["hardcoded_bsas"]
 except:
     hardcoded_bsas = ['Oblivion - Meshes.bsa', 'Oblivion - Misc.bsa', 'Oblivion - Textures - Compressed.bsa',
-                      'N - Meshes.bsa', 'N - Textures1.bsa', 'N - Textures2.bsa', 'N - Misc.bsa']
+                    'N - Meshes.bsa', 'N - Textures1.bsa', 'N - Textures2.bsa', 'N - Misc.bsa']
 
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
@@ -185,8 +185,8 @@ class Record:
             subrecords_data = b''.join(sub.serialize() for sub in self.subrecords)
             self.data_size = len(subrecords_data)
             header = struct.pack('<4sIIII', self.sig.encode('utf-8'),
-                                 self.data_size, self.flags, self.form_id,
-                                 self.vc_info)
+                                self.data_size, self.flags, self.form_id,
+                                self.vc_info)
             return header + subrecords_data
         
     def renumber_formids(self, formid_chg_map, formid_map):
@@ -354,7 +354,7 @@ class Group:
         content = b''.join(r.serialize() for r in self.records)
         group_size = len(content) + 20  # 24 bytes for the group header
         header = struct.pack('<4sIIII', b'GRUP', group_size, self.label,
-                             self.typeid, self.version)
+                            self.typeid, self.version)
         return header + content
     
     def renumber_formids(self, formid_chg_map, formid_map):
@@ -370,7 +370,7 @@ class ESPParser:
     def parse(self, filename):
         with open(filename, 'rb') as f:
             self._parse_data(f)       
-
+    
     def _parse_data(self, f):
         while True:
             offset = f.tell()
@@ -398,7 +398,6 @@ class ESPParser:
                 self.records.append(record)
                 self.formid_map[record.form_id] = record
                 f.seek(offset + 20 + record.data_size)  # 20 bytes header + data
-
     def _parse_group(self, f, end, group):
         while f.tell() < end:
             offset = f.tell()
@@ -642,7 +641,6 @@ except:
         shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'MergedLOD.esm'), folder)
     logging.info('Adding MergedLOD.esm to load order...')
     if load_order[1][-4:] == '.esm': #there are some esms that claim that they need to be in slot 01
-                                     #not really with EBF but whaterver
         l_index = 2
     else:
         l_index = 1
@@ -998,4 +996,3 @@ for worldspace in LODGen:
 
 end_time = time.time()
 elapsed_time = end_time - start_time
-logging.info(f"Finished in {elapsed_time:.6f} seconds")
