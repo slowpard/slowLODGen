@@ -836,7 +836,10 @@ logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
 for worldspace in LODGen:
     for i in sorted(LODGen[worldspace]):
-        logging.info(f'Processing {worldspace} [{i},*]')
+        indices = list(LODGen[worldspace][i].keys())
+        min_j = min(indices)
+        max_j = max(indices)
+        logging.info(f'Processing {worldspace}, cells [{i}, {min_j} to {max_j}]')
         for j in sorted(LODGen[worldspace][i]):
             logging.debug(f'Processing {worldspace} [{i},{j}]')
             mergeable_count = 0
