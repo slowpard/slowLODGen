@@ -22,9 +22,11 @@ debug_level: "INFO"
 
 #editorids of worldspaces for which merged meshes will not be generated
 worldspaces_to_skip:
+ - "AnvilCastleCourtyardWorld"
  - "AnvilWorld"
  - "BANSkingradOutskirts"
  - "BravilWorld"
+ - "BrumaWorld"
  - "CheydinhalWorld"
  - "ChorrolWorld"
  - "E3Kvatch"
@@ -49,6 +51,10 @@ worldspaces_to_skip:
  - "SENSCrucible"
  - "SENSPalace"
  - "SETest"
+ - "SETestCylarne"
+ - "SETheFringe"
+ - "SETheFringeOrdered"
+ - "TestExRuin"
  - "TestFortRuinsExtWarehouse"
  - "TestGragtown"
  - "TestMatt"
