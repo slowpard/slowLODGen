@@ -960,8 +960,9 @@ class NifProcessor:
         texture_apply_mode = -1
         for property in trishape.properties:
             if isinstance(property, pyffi.formats.nif.NifFormat.NiTexturingProperty):
-                texture_path = str(property.base_texture.source.file_name.decode('windows-1252'))
-                texture_path_raw = property.base_texture.source.file_name
+                if property.base_texture.source:
+                    texture_path = str(property.base_texture.source.file_name.decode('windows-1252'))
+                    texture_path_raw = property.base_texture.source.file_name
                 texture_apply_mode = property.apply_mode
                 texture_property = property
             elif isinstance(property, pyffi.formats.nif.NifFormat.NiMaterialProperty):
@@ -1002,7 +1003,7 @@ class NifProcessor:
         elif self.MERGE_ATLASSED_SHAPES_ONLY:
             return
         
-        if (not texture_property) and (texture_path == '') and (not is_lava):
+        if (not texture_path) and (not is_lava):
             logging.error(f"{self.current_nif_path}: Skipping shape: No texture found for trishape {trishape.name}")
         elif not material_property:
             logging.error(f"{self.current_nif_path}: Skipping shape: No material found for trishape {trishape.name}")
