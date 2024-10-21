@@ -479,6 +479,7 @@ class ESPParser:
             record.renumber_formids(formid_chg_map, self.formid_map)
 
 
+
 class BSAParser(): 
 
     FLAG_HAS_DIRECTORY_NAMES = 0x00000001   
@@ -554,8 +555,7 @@ class BSAParser():
         self.folder_count = n_folders
         self.files_count = n_files
         self.compressed = (self.flags & self.FLAG_COMPRESSED)
-        #print(self.compressed)
-        #self.full_path_in_block = (self.flags & self.FLAG_FULL_PATH_IN_BLOCK)
+        #self.full_path_in_block = (self.flags & self.FLAG_FULL_PATH_IN_BLOCK)  #apparently wrong info in uesp
         
 
         #filenames
@@ -645,20 +645,16 @@ class BSAParser():
                 'file_name_bytes': file_name.encode('windows-1252') + b'\x00',
                 'file_name_length': len(file_name.encode('windows-1252')) + 1
             }
-
             
             total_file_name_length += file_entry['file_name_length'] # (TotalFileNameLength) Total length of all file names, including \0's.
 
 
             hashed_files[self.CalculateHash(file_name)] = file_entry
 
-            # Add this code block below the existing code
-
-        hashed_files = dict(sorted(hashed_files.items()))
+        hashed_files = dict(sorted(hashed_files.items())) #sort by hash or Oblivion won't read it
 
         for file in hashed_files.values():            
             folder = file['folder']
-            # Add file to folder
             if folder not in folders:
                 folders[folder] = {
                     'folder_name': folder,
@@ -673,7 +669,7 @@ class BSAParser():
             folder_data['folder_name_length'] = len(folder_name_bytes) + 1  
             total_folder_name_length += folder_data['folder_name_length'] #Total length of all folder names, including \0's but not including the prefixed length byte.
 
-        folders = dict(sorted(folders.items(), key=lambda x: x[1]['folder_hash']))
+        folders = dict(sorted(folders.items(), key=lambda x: x[1]['folder_hash'])) #sort by hash or Oblivion won't read it
         n_folders = len(folders)
         n_files = sum(len(folder_data['files']) for folder_data in folders.values())
 
@@ -682,12 +678,12 @@ class BSAParser():
         folder_records_offset = header_size
         folder_records_size = n_folders * 16
         file_records_offset = folder_records_offset + folder_records_size
-        print(hex(file_records_offset))
+        #print(hex(file_records_offset))
         file_records_size = n_files * 16 + total_folder_name_length + n_folders
         file_names_offset = file_records_offset + file_records_size
-        print(hex(file_names_offset))
+        #print(hex(file_names_offset))
         file_data_offset = file_names_offset + total_file_name_length
-        print(hex(file_data_offset))
+        #print(hex(file_data_offset))
         offset = file_records_offset
         for folder in folders.values():
             folder['name_offset'] = offset + total_file_name_length #uint32 - Offset to name and file records for this folder. (Seems to include Total File Name Length
@@ -701,7 +697,6 @@ class BSAParser():
                 file['data_absolute_offset'] = offset
                 offset += file['size']
 
-  
         flags = self.FLAG_HAS_DIRECTORY_NAMES | self.FLAG_HAS_FILE_NAMES | self.FLAG_UNKNOWN5 | self.FLAG_UNKNOWN6 | self.FLAG_UNKNOWN7 | self.FLAG_UNKNOWN8
         content_flags = 0x00000000
         for folder_data in folders.values(): #how much perf would we save not doing this?
@@ -729,11 +724,10 @@ class BSAParser():
                 else:
                     content_flags |= 0x00000100  
 
-        # Write the BSA file
         with open(output_filename, 'wb') as f:
-            # Write header
+            
             magic_number = b'BSA\x00'
-            version = 103
+            version = 103 #Oblivion
             f.write(struct.pack(
                 '<4sIIIIIIII',
                 magic_number,
