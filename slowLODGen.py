@@ -187,17 +187,19 @@ class Record:
 
 
     def serialize(self):
+
         if self.is_compressed():
             header = struct.pack('<4sIIII', self.sig.encode('utf-8'),
-                                self.data_size, self.flags, self.form_id,
-                                self.vc_info)
+                self.data_size, self.flags, self.form_id,
+                self.vc_info)
             return header + self.data
         else:
+
             subrecords_data = b''.join(sub.serialize() for sub in self.subrecords)
             self.data_size = len(subrecords_data)
             header = struct.pack('<4sIIII', self.sig.encode('utf-8'),
-                                self.data_size, self.flags, self.form_id,
-                                self.vc_info)
+                self.data_size, self.flags, self.form_id,
+                self.vc_info)
             return header + subrecords_data
         
     def renumber_formids(self, formid_chg_map, formid_map):
@@ -858,7 +860,7 @@ except:
     
 
 if generate_bsa and bsa_name == "":
-    if not os.path.exist(os.path.join(folder, 'MergedLOD.esp')):
+    if not os.path.exists(os.path.join(folder, 'MergedLOD.esp')):
         logging.error('Error: MergedLOD.esp not found in load order')
         logging.info('Creating MergedLOD.esp...')
         shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'MergedLOD.esp'), folder)
