@@ -908,12 +908,14 @@ class NifProcessor:
         try:
 
             m_rotation = np.matmul(self.Matrix33toArray(node.rotation), rotation)
-            if not is_root or np.linalg.norm(rotation) > 0:
-                f_scale = node.scale * scale
-                m_translation = translation +  np.matmul(scale * np.array([node.translation.x, node.translation.y, node.translation.z]), rotation)
-            else:
+
+            if is_root and np.allclose(rotation, np.identity(3)):
                 f_scale = scale
                 m_translation = translation
+            else:
+                f_scale = node.scale * scale
+                m_translation = translation +  np.matmul(scale * np.array([node.translation.x, node.translation.y, node.translation.z]), rotation)
+
             
             if (not self.IGNORE_AWLS) and (node.name == 'Smoke'): #AWLS smoke
                 if len(node.children) > 0:
