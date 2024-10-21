@@ -481,8 +481,17 @@ class ESPParser:
 
 class BSAParser(): 
 
-    FLAG_COMPRESSED = 0x00000004
-    FLAG_FULL_PATH_IN_BLOCK = 0x00000100
+    FLAG_HAS_DIRECTORY_NAMES = 0x00000001   
+    FLAG_HAS_FILE_NAMES = 0x00000002        
+    FLAG_COMPRESSED = 0x00000004            
+    FLAG_UNKNOWN2 = 0x00000008              
+    FLAG_UNKNOWN3 = 0x00000010              
+    FLAG_UNKNOWN4 = 0x00000020              
+    FLAG_BIG_ENDIAN = 0x00000040            
+    FLAG_UNKNOWN5 = 0x00000080              
+    FLAG_UNKNOWN6 = 0x00000100             
+    FLAG_UNKNOWN7 = 0x00000200             
+    FLAG_UNKNOWN8 = 0x00000400              
 
     def __init__(self):
         self.files = {}
@@ -546,7 +555,7 @@ class BSAParser():
         self.files_count = n_files
         self.compressed = (self.flags & self.FLAG_COMPRESSED)
         #print(self.compressed)
-        self.full_path_in_block = (self.flags & self.FLAG_FULL_PATH_IN_BLOCK)
+        #self.full_path_in_block = (self.flags & self.FLAG_FULL_PATH_IN_BLOCK)
         
 
         #filenames
@@ -603,11 +612,190 @@ class BSAParser():
                     output_file = open(os.path.join(output_folder, file), 'wb')
                     output_file.write(decompressed_file)
                     output_file.close()
+                    data = None
                 else:
                     logging.error(f'Error: file {file} not found')
         
+    def pack(self, output_filename, files, root):
+
+        file_info = []
+        folders = {}
+        total_folder_name_length = 0
+        total_file_name_length = 0
+        n_folders = 0
+        n_files = 0
+
+        hashed_files = {}
+
+        for file in files:
+            file = file.lower()
+            full_path = os.path.join(root, file)
+            if not os.path.isfile(full_path):
+                logging.error(f"File not found: {full_path}")
+                continue
+            file_size = os.path.getsize(full_path)
+            folder, file_name = os.path.split(file)
+            file_entry = {
+                'full_path': full_path,
+                'relative_path': file,
+                'folder': folder,
+                'file_name': file_name,
+                'size': file_size,
+                'file_hash': self.CalculateHash(file_name),
+                'file_name_bytes': file_name.encode('windows-1252') + b'\x00',
+                'file_name_length': len(file_name.encode('windows-1252')) + 1
+            }
+
+            
+            total_file_name_length += file_entry['file_name_length'] # (TotalFileNameLength) Total length of all file names, including \0's.
 
 
+            hashed_files[self.CalculateHash(file_name)] = file_entry
+
+            # Add this code block below the existing code
+
+        hashed_files = dict(sorted(hashed_files.items()))
+
+        for file in hashed_files.values():            
+            folder = file['folder']
+            # Add file to folder
+            if folder not in folders:
+                folders[folder] = {
+                    'folder_name': folder,
+                    'files': []
+                }
+            folders[folder]['files'].append(file)
+
+        for folder_name, folder_data in folders.items():
+            folder_data['folder_hash'] = self.CalculateHash(folder_data['folder_name'])
+            folder_name_bytes = folder_data['folder_name'].encode('windows-1252')
+            folder_data['folder_name_bytes'] = struct.pack('B', len(folder_name_bytes) + 1) + folder_name_bytes + b'\x00'
+            folder_data['folder_name_length'] = len(folder_name_bytes) + 1  
+            total_folder_name_length += folder_data['folder_name_length'] #Total length of all folder names, including \0's but not including the prefixed length byte.
+
+        folders = dict(sorted(folders.items(), key=lambda x: x[1]['folder_hash']))
+        n_folders = len(folders)
+        n_files = sum(len(folder_data['files']) for folder_data in folders.values())
+
+        #OFFSETS
+        header_size = 36
+        folder_records_offset = header_size
+        folder_records_size = n_folders * 16
+        file_records_offset = folder_records_offset + folder_records_size
+        print(hex(file_records_offset))
+        file_records_size = n_files * 16 + total_folder_name_length + n_folders
+        file_names_offset = file_records_offset + file_records_size
+        print(hex(file_names_offset))
+        file_data_offset = file_names_offset + total_file_name_length
+        print(hex(file_data_offset))
+        offset = file_records_offset
+        for folder in folders.values():
+            folder['name_offset'] = offset + total_file_name_length #uint32 - Offset to name and file records for this folder. (Seems to include Total File Name Length
+                                                                    # #:todd_grin:
+            offset += folder_data['folder_name_length'] + 16
+
+       
+        offset = file_data_offset
+        for folder in folders.values():
+            for file in folder['files']:
+                file['data_absolute_offset'] = offset
+                offset += file['size']
+
+  
+        flags = self.FLAG_HAS_DIRECTORY_NAMES | self.FLAG_HAS_FILE_NAMES | self.FLAG_UNKNOWN5 | self.FLAG_UNKNOWN6 | self.FLAG_UNKNOWN7 | self.FLAG_UNKNOWN8
+        content_flags = 0x00000000
+        for folder_data in folders.values(): #how much perf would we save not doing this?
+            for file_entry in folder_data['files']:
+                ext = os.path.splitext(file_entry['file_name'].lower())[1]
+                if ext == '.nif':
+                    content_flags |= 0x00000001
+                elif ext == '.lod':
+                    content_flags |= 0x00000001
+                    content_flags |= 0x00000100
+                elif ext == '.dds':
+                    content_flags |= 0x00000002
+                elif ext == '.xml':
+                    content_flags |= 0x00000004
+                elif ext == '.wav':
+                    content_flags |= 0x00000008
+                elif ext == '.mp3':
+                    content_flags |= 0x00000010
+                elif ext == '.sdp':
+                    content_flags |= 0x00000020
+                elif ext == '.ctl':
+                    content_flags |= 0x00000040
+                elif ext == '.fnt':
+                    content_flags |= 0x00000080
+                else:
+                    content_flags |= 0x00000100  
+
+        # Write the BSA file
+        with open(output_filename, 'wb') as f:
+            # Write header
+            magic_number = b'BSA\x00'
+            version = 103
+            f.write(struct.pack(
+                '<4sIIIIIIII',
+                magic_number,
+                version,
+                folder_records_offset,
+                flags,
+                n_folders,
+                n_files,
+                total_folder_name_length,
+                total_file_name_length,
+                content_flags
+            ))
+
+            '''Folder records
+            uint64 - Hash of the folder name (eg: menus[slash]chargen).
+            uint32 - (FolderFileCount) Number of files in this folder.
+            uint32 - Offset to name and file records for this folder. (Seems to include Total File Name Length'''
+
+            for folder_data in folders.values():
+                f.write(struct.pack(
+                    '<QII',
+                    folder_data['folder_hash'],
+                    len(folder_data['files']),
+                    folder_data['name_offset']
+                ))
+
+            '''Folder name and files
+            bzstring - Name of the folder. (Only present if bit 1 of archive flags is set.)
+            struct[FolderFileCount] - File records in the given folder.
+                uint64 - Hash of the file name (eg: race_sex_menu.xml).
+                uint32 - (FileSize) Size of the file data. Note that the top two bits have special meaning and are not actually part of the size.
+                If bit 30 is set in the size, the default compression is inverted for this file (i.e., if the default is compressed, this file is not compressed, and vice versa).
+                Bit 31 is used internally to determine if an archive has been checked yet.
+                uint32 - Offset to raw file data for this folder. Note that an "offset" is offset from file byte zero (start), NOT from this location.
+            '''
+
+            for folder_data in folders.values():
+                f.write(folder_data['folder_name_bytes'])
+                for file_entry in folder_data['files']:
+                    f.write(struct.pack(
+                        '<QII',
+                        file_entry['file_hash'],
+                        file_entry['size'],
+                        file_entry['data_absolute_offset']
+                    ))
+
+            '''File name block. (Only present if bit 2 of the archive flags is set.)
+            A list of lower case file names, one after another, each ending in a \0. They are ordered in the same order as those generated with the file folder block contents in the BSA archive.
+            These are all the files contained in the archive, such as "cuirass.nif" and "cuirass.dds", etc (no paths, just the root names).'''
+
+            # Write file names
+            for folder_data in folders.values():
+                for file_entry in folder_data['files']:
+                    f.write(file_entry['file_name_bytes'])
+
+            # Write file data blocks
+            for folder_data in folders.values():
+                for file_entry in folder_data['files']:
+                    with open(file_entry['full_path'], 'rb') as file_data:
+                        f.write(file_data.read())
+
+        logging.info(f"BSA archive '{output_filename}' created successfully.")
 
 
 
