@@ -1107,6 +1107,8 @@ new_esp = ESPParser()
 HEDRTemplate = Subrecord('HEDR', 12, struct.pack('fII', 1.0, record_offset - 2048, record_offset))
 CNAMTemplate = Subrecord('CNAM', 7, b'LODGen\x00')
 SNAMTemplate = Subrecord('SNAM', 7, b'LODGen\x00')
+mod_description = ('Generated LODGen resource file.\nMust be put at load order position ' + format(mergedLOD_index, '02X') + ' (Mod Index column in MO2)\x00').encode('windows-1252')
+SNAMTemplate = Subrecord('SNAM', len(mod_description), mod_description)
 TES4Record = RecordTES4('TES4', 0, 1, 0, 0, b'', master_files=[]) #flags = 1 == esm
 TES4Record.subrecords.append(HEDRTemplate)
 TES4Record.subrecords.append(CNAMTemplate)
