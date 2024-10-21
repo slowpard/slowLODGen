@@ -908,7 +908,7 @@ class NifProcessor:
         try:
 
             m_rotation = np.matmul(self.Matrix33toArray(node.rotation), rotation)
-            if np.linalg.norm(rotation) > 0:
+            if not is_root or np.linalg.norm(rotation) > 0:
                 f_scale = node.scale * scale
                 m_translation = translation +  np.matmul(scale * np.array([node.translation.x, node.translation.y, node.translation.z]), rotation)
             else:
