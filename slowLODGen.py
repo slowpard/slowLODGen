@@ -1231,7 +1231,9 @@ if generate_bsa:
     bsapacker = BSAParser()
 
     bsapacker.pack(os.path.join(folder, f'{bsa_name} - LODs.bsa'), [os.path.join('distantlod', file) for file in distantlod_files], folder)
-    bsapacker.pack(os.path.join(folder, f'{bsa_name} - Meshes.bsa'), [os.path.join('meshes\\MergedLOD', file) for file in meshes_files], folder)
+    
+    if not skip_nif_generation:
+        bsapacker.pack(os.path.join(folder, f'{bsa_name} - Meshes.bsa'), [os.path.join('meshes\\MergedLOD', file) for file in meshes_files], folder)
 
     for file in distantlod_files:
         os.remove(os.path.join(folder, 'distantlod', file))
