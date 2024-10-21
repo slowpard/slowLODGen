@@ -1145,9 +1145,12 @@ except:
 logging.info('Removing old LOD files...')
 
 if os.path.exists(os.path.join(folder, 'distantlod')):
-    shutil.rmtree(os.path.join(folder, 'distantlod'))
-
-os.makedirs(os.path.join(folder, 'distantlod'))
+    for file in os.listdir(os.path.join(folder, 'distantlod')):
+        file_path = os.path.join(folder, 'distantlod', file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+else:            
+    os.makedirs(os.path.join(folder, 'distantlod'))
 
 
 for worldspace in LODGen:
