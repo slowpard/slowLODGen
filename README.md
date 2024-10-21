@@ -3,6 +3,8 @@ slowLODGen is a tool to generate merged LOD meshes per cell for drastically incr
 
 **If you don't want to read instructions, at least read this: LOAD ORDER IS EXTREMELY IMPORTANT. Oblivion LOD system relies on full FormIDs of base objects for LOD objects. As base objects for merged meshes are defined in MergedLOD.esm, it is essential that you don't change its load order position after generation. If it happens, you can regenerate LOD files without going through full merged meshes generation by changing skip_mesh_generation to True in the config or just placing the esm back where it is supposed to be.**
 
+Discord for support: https://discord.gg/77tgjpvGZ3
+
 ## **FAQ**
 
 **OH NO MY LOD IS GONE**
