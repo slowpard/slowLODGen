@@ -13,6 +13,11 @@ import traceback
 import logging
 import csv
 
+
+#pyffi has extremly abstract struct classes defined from xmls
+#this is a hack to make them *much* faster to work with 
+
+
 if True: 
     def Vector3_fast_init(self, template = None, argument = None, parent = None):
         float_object1 = pyffi.object_models.common.Float()

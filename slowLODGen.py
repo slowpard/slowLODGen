@@ -104,12 +104,6 @@ except:
 
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
 
-#pyffi has extremly abstract struct classes defined from xmls
-#this is a hack to make them *much* faster to work with 
-
-
-
-
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
         self.sig = sig   # str 4 bytes
@@ -166,6 +160,7 @@ class Record:
         while offset < len(data):
             sig = data[offset:offset+4].decode('utf-8')
             if sig == 'OFST':
+                break #actually don't need it
                 # OFST subrecord: no size field, consumes remaining data
                 sub_data = data[offset+4:]
                 subrecord = Subrecord(sig, len(sub_data), sub_data, has_size=False)
