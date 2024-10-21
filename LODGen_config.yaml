@@ -15,6 +15,19 @@ plugins_txt_path: ""
 #default: False
 skip_mesh_generation: False 
 
+#packs generated LOD files to a bsa
+#SkyBSA is required
+#essential for performance on MO2
+#not needed on Wrye Bash unless you want a tidier setup
+write_bsa: False
+
+###ADVANCED SETTINGS, DO NOT TOUCH IF YOU DON'T KNOW WHAT YOU ARE DOING##
+
+#you can use custom bsa name prefix if you need to save a esp slot and use a different esp to load the bsa
+#note, that you want this esp to be as low in LO as possible, as some mod authors include .lod files to bsa and you want to overwrite them
+#also, it is your responsibility to ensure that the esp loader exists
+custom_bsa_name: ""
+
 #controls the amount of messages generated in the console and in the log
 #"DEBUG" generates the most, "CRITICAL" generates the least
 #possible values: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"

@@ -69,6 +69,11 @@ except:
     plugins_txt = ""
 
 try:
+    bsa_name = config["custom_bsa_name"]
+except:
+    bsa_name = ""
+
+try:
     skip_nif_generation = config["skip_mesh_generation"]
 except:
     skip_nif_generation = False
@@ -103,6 +108,11 @@ except:
                     'N - Meshes.bsa', 'N - Textures1.bsa', 'N - Textures2.bsa', 'N - Misc.bsa']
 
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
+
+try:
+    generate_bsa = config["write_bsa"]
+except:
+    generate_bsa = False
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -841,10 +851,27 @@ except:
         lines.append('MergedLOD.esm' + '\n')
     with open(plugins_txt, 'w') as file:
         file.writelines(lines)
-    logging.critical(f'MegedLOD.esm is added to the load order at slot {l_index} \n'
+    logging.critical(f'MegedLOD.esm is added to the load order at slot {hex(l_index)} \n'
                     '!!MAKE SURE THAT WRYE BASH OR LOOT DOES NOT CHANGE THE SLOT!! \n'
                     'If it happens, you will either need to manually fix the load order or rerun the utility \n'
                     'with skip_mesh_generation: True to fix load order in *.lod files')
+    
+
+if generate_bsa and bsa_name == "":
+    if not os.path.exist(os.path.join(folder, 'MergedLOD.esp')):
+        logging.error('Error: MergedLOD.esp not found in load order')
+        logging.info('Creating MergedLOD.esp...')
+        shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'MergedLOD.esp'), folder)
+        logging.info('Adding MergedLOD.esm to load order...')
+        l_index = len(load_order)
+        mergedlod_time = os.path.getmtime(os.path.join(folder, load_order[-1])) + 1
+        os.utime(os.path.join(folder, 'MergedLOD.esp'), (mergedlod_time, mergedlod_time))
+        with open(plugins_txt, 'r') as file:
+            lines = file.readlines()
+        lines.append('MergedLOD.esp' + '\n')
+        with open(plugins_txt, 'w') as file:
+            file.writelines(lines)
+        logging.info(f'MegedLOD.esp is added to the load order at slot {hex(l_index)} \n')
 
 load_order = sort_esp_list(plugins_txt, folder)
 mergedLOD_index = load_order.index('MergedLOD.esm')
@@ -1095,7 +1122,6 @@ new_esp = ESPParser()
 
 HEDRTemplate = Subrecord('HEDR', 12, struct.pack('fII', 1.0, record_offset - 2048, record_offset))
 CNAMTemplate = Subrecord('CNAM', 7, b'LODGen\x00')
-SNAMTemplate = Subrecord('SNAM', 7, b'LODGen\x00')
 mod_description = ('Generated LODGen resource file.\nMust be put at load order position ' + format(mergedLOD_index, '02X') + ' (Mod Index column in MO2)\x00').encode('windows-1252')
 SNAMTemplate = Subrecord('SNAM', len(mod_description), mod_description)
 TES4Record = RecordTES4('TES4', 0, 1, 0, 0, b'', master_files=[]) #flags = 1 == esm
@@ -1188,6 +1214,25 @@ for worldspace in LODGen:
         cmp.write((7).to_bytes(4, byteorder='little', signed=False))
 
 
+
+if generate_bsa:
+    if bsa_name == "":
+        bsa_name = 'MergedLOD'
+
+    distantlod_files = os.listdir(os.path.join(folder, 'distantlod')) 
+    meshes_files = os.listdir(os.path.join(folder, 'meshes\\MergedLOD'))
+
+
+    bsapacker = BSAParser()
+
+    bsapacker.pack(os.path.join(folder, f'{bsa_name} - LODs.bsa'), [os.path.join('distantlod', file) for file in distantlod_files], folder)
+    bsapacker.pack(os.path.join(folder, f'{bsa_name} - Meshes.bsa'), [os.path.join('meshes\\MergedLOD', file) for file in meshes_files], folder)
+
+    for file in distantlod_files:
+        os.remove(os.path.join(folder, 'distantlod', file))
+
+    for file in meshes_files:
+        os.remove(os.path.join(folder, 'meshes\\MergedLOD', file))
 
 end_time = time.time()
 elapsed_time = end_time - start_time
