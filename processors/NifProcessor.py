@@ -903,14 +903,17 @@ class NifProcessor:
                         #print(id(target_sequence.controlled_blocks[-1]))
                     target_sequence.num_controlled_blocks = len(target_sequence.controlled_blocks)
 
-    def process_nif_node(self, node, translation, rotation, scale):
+    def process_nif_node(self, node, translation, rotation, scale, is_root = False):
 
         try:
-            f_scale = node.scale * scale
-            
-            m_translation = translation +  np.matmul(scale * np.array([node.translation.x, node.translation.y, node.translation.z]), rotation)
-            
+
             m_rotation = np.matmul(self.Matrix33toArray(node.rotation), rotation)
+            if np.linalg.norm(rotation) > 0:
+                f_scale = node.scale * scale
+                m_translation = translation +  np.matmul(scale * np.array([node.translation.x, node.translation.y, node.translation.z]), rotation)
+            else:
+                f_scale = scale
+                m_translation = translation
             
             if (not self.IGNORE_AWLS) and (node.name == 'Smoke'): #AWLS smoke
                 if len(node.children) > 0:
@@ -1243,7 +1246,7 @@ class NifProcessor:
                     pass
             
             if isinstance(root, pyffi.formats.nif.NifFormat.NiNode):
-                self.process_nif_node(root, m_translation, m_rotation, f_scale)
+                self.process_nif_node(root, m_translation, m_rotation, f_scale, is_root = True)
             elif isinstance(root, pyffi.formats.nif.NifFormat.NiTriShape):
                 self.process_nif_trigeometry(root, m_translation, m_rotation, f_scale)
             elif isinstance(root, pyffi.formats.nif.NifFormat.NiTriStrips):
