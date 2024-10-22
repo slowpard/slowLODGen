@@ -16,12 +16,13 @@ import gc
 start_time = time.time()
 
 #PATHS
-
-
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'LODGen_config.yaml'), "r") as file:
-    config = yaml.safe_load(file)
-
-
+try:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'LODGen_config.yaml'), "r") as file:
+        config = yaml.safe_load(file)
+except:
+    logging.critical("LODGen_config.yaml not found, using default values...")
+    
+counter = 0
 
 try:
     debug_level = config["debug_level"]
@@ -85,9 +86,14 @@ if plugins_txt == "":
     else:
         logging.critical("Plugins.txt not found, exiting...")
         exit()
+else:
+    if not os.path.exists(plugins_txt):
+        logging.critical(f"Plugins.txt not found at the defined path {plugins_txt}, exiting...")
+        exit()
 
 logging.info("Oblivion path: " + folder)
 logging.info("plugins.txt path: " + plugins_txt)
+
 try:
     worldspaces_to_skip = config["worldspaces_to_skip"]
 except:
@@ -108,6 +114,10 @@ except:
                     'N - Meshes.bsa', 'N - Textures1.bsa', 'N - Textures2.bsa', 'N - Misc.bsa']
 
 empty_nif_template = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'empty_ninode.nif')
+
+if not os.path.exists(empty_nif_template):
+    logging.critical("empty_ninode.nif template not found, check the tool installation, exiting...")
+    exit()
 
 try:
     generate_bsa = config["write_bsa"]
@@ -798,7 +808,10 @@ class BSAParser():
 
         logging.info(f"BSA archive '{output_filename}' created successfully.")
 
-
+if generate_bsa:
+    if not os.path.exists(os.path.join(folder, 'OBSE\\Plugins', 'SkyBSA.dll')):
+        logging.critical('Critical error: SkyBSA.dll not found in OBSE\\Plugins folder. SkyBSA is required for BSA generation.')
+        exit()
 
 def sort_esp_list(filepath, folder):
     file_list = []
