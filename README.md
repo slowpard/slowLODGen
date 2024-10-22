@@ -1,9 +1,34 @@
 
 slowLODGen is a tool to generate merged LOD meshes per cell for drastically increased performance. The tool fully supersedes the existing TES4LODGen and is a fully automated (almost) one-click solution.
 
-**If you don't want to read instructions, at least read this: LOAD ORDER IS EXTREMELY IMPORTANT. Oblivion LOD system relies on full FormIDs of base objects for LOD objects. As base objects for merged meshes are defined in MergedLOD.esm, it is essential that you don't change its load order position after generation. If it happens, you can regenerate LOD files without going through full merged meshes generation by changing skip_mesh_generation to True in the config or just placing the esm back where it is supposed to be.**
+>[!WARNING]
+>**If you don't want to read instructions, at least read this: LOAD ORDER IS EXTREMELY IMPORTANT. Oblivion LOD system relies on full FormIDs of base objects for LOD objects. As base objects for merged meshes are defined in MergedLOD.esm, it is essential that you don't change its load order position after generation and ensure that its load order matches the load order stated in the description.**
 
 Discord for support: https://discord.gg/77tgjpvGZ3
+
+## **Installation\Usage**
+
+#### Wrye Bash or any other setup without a virtual FS
+1. Unpack the archive somewhere on your computer.
+2. Double-click on Launch `slowLODGen.bat`
+3. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
+
+#### Using non-standard (not matching the record in Windows registry) Oblivion directories (or several local installs)
+1. Unpack the archive somewhere on your computer.
+2. Open LODGen_config.yaml with any text editor (e.g. Notepad)
+3. Set path to your Data folder in the field `game_folder`. Note that you have to use double slashes in the path. Example: `game_folder: "C:\\Games\\Oblivion\\Data"`
+4. If you use local Oblivion.ini setup (you know if you do), set the path to Plugins.txt file in `plugins_txt_path` field. Use double slashes: `plugins_txt_path: "C:\\Games\\Oblivion\\plugins.txt"`
+5. Double-click on Launch slowLODGen.bat
+6. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
+
+#### MO2
+1. Unpack the archive somewhere on your computer.
+2. If you use a non-standard Oblivion directory, refer to the previous section for paths.
+3. Open LODGen_config.yaml with any text editor (e.g. Notepad) and set `write_bsa` to `write_bsa: True` (note that SkyBSA is required).
+4. Add `slowLODGen.bat` as an executable (Tools -> Executables... -> "+" -> "Add from file..."). 
+5. Run the bat through **MO2** (select "Launch slowLODGen" in the list in the right pane and press the giant "Run" button)
+6. Check in the right pane that the load order position (right pane, `"Mod Index" column`) of MergedLOD.esm matches the load order position stated in the esp description (shown when yuou hover over the plugin) and that the file is active.
+7. Check that MergedLOD.esp is active and that it is loaded late in the load order.
 
 ## **FAQ**
 
