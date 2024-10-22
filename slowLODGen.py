@@ -809,6 +809,9 @@ def sort_esp_list(filepath, folder):
         if filename.startswith('#'):
             continue
         full_filename = os.path.join(folder, filename)
+        if not os.path.exists(full_filename):
+            logging.error(f'Error: file {full_filename} is enabled but does not exist')
+            continue
         _, extension = os.path.splitext(filename)
         extension = extension.lower()
         modified_time = os.path.getmtime(full_filename)   
