@@ -509,7 +509,9 @@ class NifProcessor:
         tex_path = None
         for property in shape.properties:
             if isinstance(property, pyffi.formats.nif.NifFormat.NiTexturingProperty):
-                tex_path = property.base_texture.source.file_name
+                if property.base_texture.source:
+                    if property.base_texture.source.file_name:
+                        tex_path = property.base_texture.source.file_name
 
 
 
