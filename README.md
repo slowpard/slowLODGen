@@ -109,14 +109,14 @@ Yes, all dependencies are installable from PyPI.
 **Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit) - heavy texture packs, light impact from scripts and new objects, ORC from performance optimizations and LOD culling
 First of all, more or less "realistic" 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test the performance in a gameplayish environment in a FPS-intensive area with a lot of loading stutter and impact from NPCs and clutter.
 
-<img src="mets/benchmarks/LongRunAvg.png" width="500"/>
-<img src="mets/benchmarks/LongRun1P.png" width="500"/>
+<img src="meta/benchmarks/LongRunAvg.png" width="500"/>
+<img src="meta/benchmarks/LongRun1P.png" width="500"/>
 
 What is the reason for such an increase? Draw calls. The less separate shapes the CPU has to process, the higher is FPS. GPU utilization (or how much work your CPU managed to give to the GPU) explains 98% of variance of FPS between tests:
-<img src="mets/benchmarks/Utilization.png" width="500"/>
+<img src="meta/benchmarks/Utilization.png" width="500"/>
 
 No free lunch though. The game has to keep unique LOD nifs in memory, increasing RAM consumption. Not an issue in this case, as we are not close even to the 32bit 1.6GB limit, but depending on your setup (you don't use heavy retextures without OR/ENBoost memory patch, right?) this might be a consideration. 
-<img src="mets/benchmarks/LongRunRAM.png" width="500"/>
+<img src="meta/benchmarks/LongRunRAM.png" width="500"/>
 
 
 
