@@ -106,17 +106,58 @@ Yes, all dependencies are installable from PyPI.
 ### Lightly-modded game
 
 **Hardware:** Ryzen 3600, RTX 2060
+
 **Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit) - heavy texture packs, light impact from scripts and new objects, ORC from performance optimizations and LOD culling
-First of all, more or less "realistic" 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test the performance in a gameplayish environment in a FPS-intensive area with a lot of loading stutter and impact from NPCs and clutter.
+
+**LOD meshpack variants:** 4 options, 3 performance variants of J3 and RAEVWD which is close to J3 Performance in terms of number of objects included. See the comparison: https://imgsli.com/MzExNTQ1/
+
+#### "Reconaissance Drone" Benchmark
+
+First of all, more or less "realistic" fast 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test the performance in a gameplayish environment in a very FPS-intensive area (includes UL Imperial Isle + you fly over Pell's Gate, Weye, Talos Bridge, and Arthmoor's Urasek) with a lot of loading stutter and impact from NPCs and clutter.
 
 <img src="meta/benchmarks/LongRunAvg.png" width="500"/>
 <img src="meta/benchmarks/LongRun1P.png" width="500"/>
 
 What is the reason for such an increase? Draw calls. The less separate shapes the CPU has to process, the higher is FPS. GPU utilization (or how much work your CPU managed to give to the GPU) explains 98% of variance of FPS between tests:
+
 <img src="meta/benchmarks/Utilization.png" width="500"/>
 
 No free lunch though. The game has to keep unique LOD nifs in memory, increasing RAM consumption. Not an issue in this case, as we are not close even to the 32bit 1.6GB limit, but depending on your setup (you don't use heavy retextures without OR/ENBoost memory patch, right?) this might be a consideration. 
-<img src="meta/benchmarks/LongRunRAM.png" width="500"/>
+
+<img src="meta/benchmarks/LongRunRAM.png" width="500"/>  
+
+#### "Adventurous Trailblazer" Benchmarks
+
+Short 10s recordings of FPS in 4 spots without moving or looking around.
+
+***[Frostcrag](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Frostcrag_view.jpg)***
+
+The golden standard for a spot of LOD benchmark testing. You see *everything*. LOD becomes the key FPS limiting factor here, and merging objects achieves 2-3x increase in FPS. Note that RAEVWD and J3 Full switch places after merging -- that's where atlassing helps immensly.
+
+<img src="meta/benchmarks/Frostcrag.png" width="500"/>
+
+***[Chorrol](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Chorrol_view.jpg)***
+
+Another panoramic vista in the Colovian Highlands. You can spot several landmarks from there, including Chorrol, IC, and Frostcrag Tower.
+
+<img src="meta/benchmarks/Chorrol.png" width="500"/>
+
+***[Bravil/Nibeney](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Nibeney_view.jpg)***
+
+Take a hike to the Boethia's Shrine for gorgeous views of Bravil and the Niben River. Just avoid the local wildlife that can include Clannfears and Daedroths in Dagon season.
+
+<img src="meta/benchmarks/Bravil.png" width="500"/>
+
+***[Kvatch/Anvil/Golden Coast](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Anvil_view.jpg)***
+
+A bit different benchmark with much more local objects rendered, so the gaps are much narrower. Will have to merge local rock next!
+
+<img src="meta/benchmarks/Kvatch.png" width="500"/>
+
+
+
+
+
 
 
 
