@@ -1,8 +1,11 @@
 
 slowLODGen is a TES 4: Oblivion tool that generates merged object LOD meshes that don't kill your performance. It replaces the good old TES4LODGen, offering a fully automated, (almost) one-click solution.
 
+_This screenshot was taken at 172fps_
+![header](https://github.com/user-attachments/assets/a6654b0d-2451-4539-a135-610482b99089)
+
 ## **Key Features**
-**Significant performance gains.** slowLODGen merges LOD meshes per every cell, drastically reducing the number of drawcalls, which leads to significantly higher FPS (up to ~3x in some test scenarios compared to TES4LODGen -- refer to the Benchmarks section).
+**Significant performance gains.** slowLODGen merges LOD meshes per every cell, drastically reducing the number of drawcalls, which leads to significantly higher FPS (up to ~3x in some test scenarios compared to TES4LODGen at cost of 100-300MB RAM consumption -- refer to the Benchmarks section).
 
 **Easy to use.** Installation and usage are incredibly simple — just double-click a .bat file, and the tool does the rest.
 
@@ -97,3 +100,27 @@ No real need to. Also, we use PyPy instead of CPython as it is 2-3x times faster
 **I don't like using some random bundled binaries, can I just run it on my python instance?**
 
 Yes, all dependencies are installable from PyPI.
+
+## **Benchmarks**
+
+### Lightly-modded game
+
+**Hardware:** Ryzen 3600, RTX 2060
+**Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit) - heavy texture packs, light impact from scripts and new objects, ORC from performance optimizations and LOD culling
+First of all, more or less "realistic" 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test the performance in a gameplayish environment in a FPS-intensive area with a lot of loading stutter and impact from NPCs and clutter.
+
+![image](https://github.com/user-attachments/assets/1106cfec-3c96-4391-af22-126a2f60801f)
+![image](https://github.com/user-attachments/assets/1794b2b7-be97-4ecd-81f2-387a3d47017e)
+
+What is the reason for such an increase? Draw calls. The less separate shapes the CPU has to process, the higher is FPS. GPU utilization (or how much work your CPU managed to give to the GPU) explains 98% of variance of FPS between tests:
+![image](https://github.com/user-attachments/assets/f7156c2c-870f-4301-af25-33a2966412d9)
+
+No free lunch though. The game has to keep unique LOD nifs in memory, increasing RAM consumption. Not an issue in this case, as we are not close even to the 32bit 1.6GB limit, but depending on your setup (you don't use heavy retextures without OR/ENBoost memory patch, right?) this might be a consideration. 
+![image](https://github.com/user-attachments/assets/730f66e6-3f2c-4569-883a-b608ebbec072)
+
+
+
+
+
+
+
