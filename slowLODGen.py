@@ -1151,7 +1151,7 @@ for worldspace in LODGen:
 
                 record_offset += 1
 
-    gc.collect()    #doing it every cell causes performance issues
+    #gc.collect()    #doing it every cell causes performance issues
                     #but it is still needed as Python doesn't clean memory properly in loops like that
 
 end_time = time.time()                    
