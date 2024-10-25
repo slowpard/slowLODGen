@@ -105,8 +105,8 @@ try:
 except:
     meshes_to_skip = []
 
-for mesh in meshes_to_skip:
-    mesh = mesh.lower()
+for i, mesh in enumerate(meshes_to_skip):
+    meshes_to_skip[i] = mesh.lower()
 
 try:
     hardcoded_bsas = config["hardcoded_bsas"]
@@ -1207,9 +1207,9 @@ for worldspace in LODGen:
         for i in LODGen[worldspace]:
             for j in LODGen[worldspace][i]:
                 
+
                 cell_refs = LODGen[worldspace][i][j]
                 unique_refs = sorted(set(ref[0] for ref in cell_refs))
-
                 filename = os.path.join(folder, 'distantlod', f"{worldspace}_{i}_{j}.lod")
 
                 with open(filename, 'wb') as lod_file:
