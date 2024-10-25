@@ -11,6 +11,7 @@ import math
 import shutil
 from processors.NifProcessor import NifProcessor
 import gc
+import csv
 
 
 start_time = time.time()
@@ -123,6 +124,13 @@ try:
     generate_bsa = config["write_bsa"]
 except:
     generate_bsa = False
+
+
+try:
+    triangle_profiler = config["triangle_profiler"]
+except:
+    triangle_profiler = False
+
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -1060,6 +1068,8 @@ elapsed_time = end_time - start_time
 
 logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
+triangle_logger = {}
+
 for worldspace in LODGen:
     for i in sorted(LODGen[worldspace]):
         indices = list(LODGen[worldspace][i].keys())
@@ -1105,7 +1115,14 @@ for worldspace in LODGen:
                             scale = 1.0
                         else:
                             scale = scale[0]
+
+                        triangle_count = merger.triangle_count
                         merger.ProcessNif(path, position, rotations, scale)
+
+                        if mesh_file not in triangle_logger:
+                            triangle_logger[mesh_file] = 0
+                        triangle_logger[mesh_file] += merger.triangle_count - triangle_count
+
                     #merger.CleanAnimationController()
                     merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
                     shutil.copyfile(empty_nif_template, \
@@ -1140,6 +1157,13 @@ for worldspace in LODGen:
 end_time = time.time()                    
 elapsed_time = end_time - start_time
 logging.info(f"Meshes generated: {elapsed_time:.6f} seconds")
+
+if triangle_profiler:
+    with open('triangle_logger.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Mesh File', 'Triangle Count'])
+        for mesh_file, triangle_count in triangle_logger.items():
+            writer.writerow([mesh_file, triangle_count])    
 
 new_esp = ESPParser()
 

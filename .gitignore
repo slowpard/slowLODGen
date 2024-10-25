@@ -2,3 +2,5 @@
 output.log
 
 __pycache__/
+
+triangle_logger.csv

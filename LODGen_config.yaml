@@ -37,6 +37,10 @@ custom_bsa_name: ""
 #possible values: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
 debug_level: "INFO"
 
+#generates a csv that has statistic on how much each _far mesh contributes to the total triangle count
+#useful for optimizing LOD packs or finding bottlenecks
+triangle_profiler: False
+
 #editorids of worldspaces for which merged meshes will not be generated
 worldspaces_to_skip:
  - "AnvilCastleCourtyardWorld"

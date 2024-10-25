@@ -349,7 +349,7 @@ class NifProcessor:
         self.shapes_merged = 0
         self.atlas_data = {}
         self.current_nif_path = ''
-
+        self.triangle_count = 0
 
     def MatrixfromEulerAngles(self, x, y, z):
         #xyz
@@ -1184,7 +1184,7 @@ class NifProcessor:
                     else:
                         target_shape.data.uv_sets[0].append(uv)
 
-
+                pre_triangle_count = len(target_shape.data.triangles)
                 if isinstance(trishape, pyffi.formats.nif.NifFormat.NiTriShape):
                     for triangle in trishape.data.triangles:
                         temp_triangle = pyffi.formats.nif.NifFormat.Triangle()
@@ -1211,6 +1211,7 @@ class NifProcessor:
                 target_shape.data.num_triangles = len(target_shape.data.triangles) #+= trishape.data.num_triangles
                 target_shape.data.num_triangle_points = target_shape.data.num_triangles * 3
 
+                self.triangle_count += len(target_shape.data.triangles) - pre_triangle_count
 
                 if len(target_shape.data.normals) < len(target_shape.data.vertices):
                     logging.warning(f"{self.current_nif_path}: WARNING: shape {trishape.name} doesn't have normals, dummy normals will be added. This will cause visual artifacts.")
@@ -1364,6 +1365,8 @@ class NifProcessor:
         self.master_nif.read(self.nif_template)
 
         self.anim_list = []
+
+        self.triangle_count = 0
 
     def MiddleOfCellCalc(self, cell_x, cell_y):
         
