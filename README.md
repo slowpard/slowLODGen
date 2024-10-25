@@ -164,13 +164,13 @@ Short 10s recordings of FPS in 4 spots without moving or looking around.
 
 ***[Frostcrag](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Frostcrag_view.jpg)***
 
-The golden standard for a spot of LOD benchmark testing. You see *everything*. LOD becomes the key FPS limiting factor here, and merging objects achieves 2-3x increase in FPS. Note that RAEVWD and J3 Full switch places after merging -- that's where atlassing helps immensly.
+The golden standard for a spot of LOD benchmark testing. You see *everything*. LOD becomes the key FPS limiting factor here, and merging objects achieves 2-3x increase in FPS. Note that RAEVWD and J3 Full switch places after merging -- that's where atlassing helps immensely.
 
 <img src="meta/benchmarks/Frostcrag.png" width="500"/>
 
 ***[Chorrol](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Chorrol_view.jpg)***
 
-Another panoramic vista in the Colovian Highlands. You can spot several landmarks from there, including Chorrol, IC, and Frostcrag Tower.
+Another panoramic vista, this time in the Colovian Highlands. You can spot several landmarks from there, including Chorrol, IC, and Frostcrag Tower.
 
 <img src="meta/benchmarks/Chorrol.png" width="500"/>
 
@@ -182,7 +182,7 @@ Take a hike to the Boethia's Shrine for gorgeous views of Bravil and the Niben R
 
 ***[Kvatch/Anvil/Golden Coast](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Anvil_view.jpg)***
 
-A bit different benchmark with much more local objects rendered and much less LOD objects in sight, so the gaps are much narrower. Will have to merge local rock next!
+A bit different benchmark with much more local objects rendered and much less LOD objects in sight, so the gaps are much narrower. Will have to merge local rocks next!
 
 <img src="meta/benchmarks/Kvatch.png" width="500"/>
 
