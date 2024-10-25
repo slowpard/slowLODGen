@@ -178,7 +178,7 @@ Take a hike to the Boethia's Shrine for gorgeous views of Bravil and the Niben R
 
 ***[Kvatch/Anvil/Golden Coast](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Anvil_view.jpg)***
 
-A bit different benchmark with much more local objects rendered, so the gaps are much narrower. Will have to merge local rock next!
+A bit different benchmark with much more local objects rendered and much less LOD objects in sight, so the gaps are much narrower. Will have to merge local rock next!
 
 <img src="meta/benchmarks/Kvatch.png" width="500"/>
 
