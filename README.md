@@ -38,14 +38,6 @@ Also, good news for [Better Cities](https://www.nexusmods.com/oblivion/mods/1651
 2. Double-click on Launch `slowLODGen.bat` and wait for the tool to finish (depending on your setup can take 5-15 minutes)
 3. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
 
-#### Using non-standard (not matching the record in Windows registry) Oblivion directories (or several local installs)
-1. Unpack the archive somewhere on your computer.
-2. Open LODGen_config.yaml with any text editor (e.g. Notepad)
-3. Set path to your Data folder in the field `game_folder`. Note that you have to use double slashes in the path. Example: `game_folder: "C:\\Games\\Oblivion\\Data"`
-4. If you use local Oblivion.ini setup (you know if you do), set the path to Plugins.txt file in `plugins_txt_path` field. Use double slashes: `plugins_txt_path: "C:\\Games\\Oblivion\\plugins.txt"`
-5. Double-click on Launch slowLODGen.bat and wait for the tool to finish (depending on your setup can take 5-15 minutes)
-6. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
-
 #### MO2
 1. Unpack the archive somewhere on your computer.
 2. If you use a non-standard Oblivion directory, refer to the previous section for paths.
@@ -58,6 +50,16 @@ Also, good news for [Better Cities](https://www.nexusmods.com/oblivion/mods/1651
 
 #### Regenerating *.lod files without remerging the meshes
 If you need to quickly update your *.lod files (for instance, because of some small load order changes or if you need to move the esm somewhere else), you can set `skip_mesh_generation: True` in LODGen_config.yaml. In this case, your merged meshes will be reused. 
+
+#### Using non-standard (not matching the record in Windows registry) Oblivion directories (or several local installs)
+Normally you don't need this. But if you moved your Oblivion install into another folder without fixing the registry path, or you are running several Oblivion installs on one machine, this can be handy.
+
+1. Unpack the archive somewhere on your computer.
+2. Open LODGen_config.yaml with any text editor (e.g. Notepad)
+3. Set path to your Data folder in the field `game_folder`. Note that you have to use double slashes in the path. Example: `game_folder: "C:\\Games\\Oblivion\\Data"`
+4. If you use local Oblivion.ini setup (you know if you do), set the path to Plugins.txt file in `plugins_txt_path` field. Use double slashes: `plugins_txt_path: "C:\\Games\\Oblivion\\plugins.txt"`
+5. Double-click on Launch slowLODGen.bat and wait for the tool to finish (depending on your setup can take 5-15 minutes)
+6. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
 
 ## **FAQ**
 
@@ -87,11 +89,21 @@ If you changed something in the config file, read carefully the description of t
 
 **I don't like atlassed LOD packs because they do not have AWLS features, can I use RAEVWD :lizard:?**
 
-You can, performance will be much worse.
+You can but performance will be significantly worse.
+
+**MTAEVWD?**
+
+😂
 
 **Why the need for an esm in the first place?**
 
 Mostly to reduce the number of user reports claiming that their LOD is gone and reduce the maintenance time for users who change their LO often. .lod files save the information about object's base load-order dependent FormID – that means that any changes in MergedLOD.esm LO will break LOD. If it is placed very high in the LO, there is a little chance that any other LO changes would move the file.
+
+**Technical explanation of load order shenanigans?**
+
+ESM: Oblivion uses a very weird LOD system. Every LOD object is recorded using its *full base record FormID* and information about its position, rotation, and scale. In case of merged LODs, I have to creatre a separate STAT object with a model path, and *full, load-order dependent* FormID of this STAT object is recorded into .lod files.
+
+ESP: With SkyBSA, the priority of a bsa is based on the LO of the esp loader. Some mod authors include .lod files (and in case of some mods -- broken .lod file, hi, Hackdirt Alive!) into their bsas, and we need to overwrite them, so the later we load our bsa loader, the better. Btw, in case of vanilla BSA loader, if a file exists in several BSA archives (remember, that .lod files already exist in vanilla BSAs), the choice of a winning file is based on the moon phase, temperature in your room, FX rate of ZWD to GBP, and the number of Instagram followers of Sabrina Carpenter -- that's why we require SkyBSA when the option to pack LOD files to bsas is enabled.
 
 **Why can't you provide a single exe executable like Wrye Bash?**
 
@@ -154,11 +166,51 @@ A bit different benchmark with much more local objects rendered, so the gaps are
 
 <img src="meta/benchmarks/Kvatch.png" width="500"/>
 
+### Everyone Deserves a Performance Uplift
 
+**Hardware:** Ryzen 3600, RTX 2060
 
+**Modlist:** everything. And J3 Performance (not "No rocks", this one has some 2080 rocks).
 
+Another benchmark that is run on an extremly loaded setup. Full Better Cities, almost full UL, everything that retextures can offer, tons of location mods (Arthmoor's villages, AFK Weye, MTC villages, SoC, etc), major quest mods, MOO and OOO. For main LOD package, J3 Performance is used. The same 3-minute flight around the Imperial Isle: the performance is doubled. So, is it helpful for overly modded setups? Yes, 100%.
 
+<img src="meta/benchmarks/Overmodded.png" width="500"/>
 
+What is more telling is how much time the game spends above 60FPS. In slowLODGen example you can enjoy 60FPS most of the time (many people limit FPS at 60) -- don't forget that the benchmark includes a lot of FPS-tanking cell loading, much more than during normal gameplay.
+
+<img src="meta/benchmarks/OvermoddedTimeAbove60FPS.png" width="500"/>
+
+### You Don’t Need Rocket Fuel To Run a Tricycle
+
+**Hardware:** laptop with Intel i5-1135G7
+
+**Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit)
+
+Not sure if it is an effect of large retextures or ORC water effects but the integrated GPU is completely overwhelmed, so any relief on CPU doesn't bring any tangible performance benefits. To the extent that *completely switching off* LOD mods doesn't bring any significant performance increases. Takeaway: ~~if you have an integrated GPU, use MTAEVWD~~ you have to know what performance bottlenecks for your system are. 
+
+<img src="meta/benchmarks/LaptopPerformance.png" width="500"/>
+
+### Credits
+
+TES4LODGen – while no code is used directly, this was an irreplaceable source of information for .lod files as no other documentation is available
+
+UESP – documentation on BSA/ESP format
+
+[Benchmark](https://www.nexusmods.com/oblivion/mods/52837) – the best mod for benchmarking your performance 
+
+[PyPy](https://pypy.org/) – a fast replacement for CPython that is bundled with the tool
+
+[PyFFI](https://github.com/niftools/pyffi) – the one and only nif library for Python
+
+Thanks to JESSITIN3 for J3 VWD 2 and starting to pave the way to more optimized LOD.
+
+Thanks to GBR for showing that merged LOD meshes are possible.
+
+Thanks to Arthmoor for RAEVWD and related research on what LOD meshes break Oblivion.
+
+Thanks to llde, Lorkhansheart, aerisarn, GOOGLEPOX, Yinsolaya, GBR, Psymon, Darkforce, Sasquatch, Ortorin, and dozens of others from New Oblivion Modding Discord for advice, reprimanding for ignoring multibyte characters, testing extremly crashy builds, uploading these 500mb debug logs, support and just posting monkey stickers. You are the best!
+
+Additional thanks to Vorians for maintaining BC/UL -- the whole mesh merging thing was initially created to help with BC/UL performance, I just got sidetracked a bit 
 
 
 
