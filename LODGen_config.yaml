@@ -2,11 +2,14 @@
 #SkyBSA is required
 #essential for performance on MO2
 #not needed on Wrye Bash unless you want a tidier setup
+#accepted values: True, False
+#default: False
 write_bsa: False
 
 #skips mesh generation if set to True, *.lod files are still generated
-#useful for small LO updates that do not drastically affect LOD
+#can be set to True for minor load order changes
 #or for cases when you need to move MergedLOD.esm
+#accepted values: True, False
 #default: False
 skip_mesh_generation: False 
 
@@ -14,13 +17,14 @@ skip_mesh_generation: False
 ###NO NEED TO EDIT THESE UNLESS YOU MANUALLY MOVED YOUR GAME FROM THE INSTALLATION DIRECTORY
 ###OR IF YOU HAVE SEVERAL INSTALLATIONS ON ONE PC
 
-#path to *Data* folder, if empty, the script will fetch the path from the registry
+#path to *Data* folder, if it is not defined by the user, the script will fetch the default path from the registry
 #note that the path has to use double slashes: "C:\\Games\\Oblivion\\Data"
 #default: ""
 game_folder: ""
 
-#path to plugins.txt file, if empty, the script will fetch the file from its default location
+#path to plugins.txt file, if it is not defined by the user, the script will fetch the file from its default location
 #useful for people with several local Oblivion installs
+#YOU KNOW IF YOU NEED THIS, IF YOU ASK IF YOU NEED TO SET IT, YOU DON'T NEED TO SET IT
 #note that the path has to use double slashes: "C:\\Games\\Oblivion\\plugins.txt"
 #default: ""
 plugins_txt_path: ""
