@@ -1,3 +1,19 @@
+#packs generated LOD files to a bsa
+#SkyBSA is required
+#essential for performance on MO2
+#not needed on Wrye Bash unless you want a tidier setup
+write_bsa: False
+
+#skips mesh generation if set to True, *.lod files are still generated
+#useful for small LO updates that do not drastically affect LOD
+#or for cases when you need to move MergedLOD.esm
+#default: False
+skip_mesh_generation: False 
+
+###CUSTOM PATH SETTINGS
+###NO NEED TO EDIT THESE UNLESS YOU MANUALLY MOVED YOUR GAME FROM THE INSTALLATION DIRECTORY
+###OR IF YOU HAVE SEVERAL INSTALLATIONS ON ONE PC
+
 #path to *Data* folder, if empty, the script will fetch the path from the registry
 #note that the path has to use double slashes: "C:\\Games\\Oblivion\\Data"
 #default: ""
@@ -9,19 +25,7 @@ game_folder: ""
 #default: ""
 plugins_txt_path: ""
 
-#skips mesh generation if set to True, *.lod files are still generated
-#useful for small LO updates that do not drastically affect LOD
-#or for cases when you need to move MergedLOD.esp
-#default: False
-skip_mesh_generation: False 
-
-#packs generated LOD files to a bsa
-#SkyBSA is required
-#essential for performance on MO2
-#not needed on Wrye Bash unless you want a tidier setup
-write_bsa: False
-
-###ADVANCED SETTINGS, DO NOT TOUCH IF YOU DON'T KNOW WHAT YOU ARE DOING##
+###ADVANCED SETTINGS, DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING
 
 #you can use custom bsa name prefix if you need to save a esp slot and use a different esp to load the bsa
 #note, that you want this esp to be as low in LO as possible, as some mod authors include .lod files to bsa and you want to overwrite them
@@ -73,6 +77,7 @@ worldspaces_to_skip:
  - "TestMatt"
  - "TestWorld"
  - "ToddTestLand2"
+ - "Toddland"
 
 #meshes that are not going to be merged -- lowercase without _far
 meshes_to_skip:
