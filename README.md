@@ -139,22 +139,22 @@ Yes, all dependencies are installable from PyPI.
 
 **Hardware:** Ryzen 3600, RTX 2060
 
-**Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit) - heavy texture packs, light impact from scripts and new objects, ORC from performance optimizations and LOD culling
+**Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit) - heavy texture packs, light impact from scripts and new objects, ORC for performance optimizations and LOD culling
 
-**LOD meshpack variants:** 4 options, 3 performance variants of J3 and RAEVWD which is close to J3 Performance in terms of number of objects included. See the comparison: https://imgsli.com/MzExNTQ1/
+**LOD meshpack variants:** 4 options, 3 performance variants of J3, and RAEVWD which is close to J3 Performance in terms of number of objects included. See the comparison: https://imgsli.com/MzExNTQ1/
 
 #### "Reconaissance Drone" Benchmark
 
-First of all, more or less "realistic" fast 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test the performance in a gameplayish environment in a very FPS-intensive area (includes UL Imperial Isle + you fly over Pell's Gate, Weye, Talos Bridge, and Arthmoor's Urasek) with a lot of loading stutter and impact from NPCs and clutter.
+First of all, more or less "realistic" fast 3-minute flight around the Imperial Isle with [Benchmark](https://www.nexusmods.com/oblivion/mods/52873). This test allows to test performance in a gameplay-like scenario in a very FPS-intensive area (includes UL Imperial Isle + you fly over Pell's Gate, Weye, Talos Bridge, and Arthmoor's Urasek) with a lot of loading stutter and impact from NPCs and clutter.
 
 <img src="meta/benchmarks/LongRunAvg.png" width="500"/>
 <img src="meta/benchmarks/LongRun1P.png" width="500"/>
 
-What is the reason for such an increase? Draw calls. The less separate shapes the CPU has to process, the higher is FPS. GPU utilization (or how much work your CPU managed to give to the GPU) explains 98% of variance of FPS between tests:
+What is the reason for such an increase? Draw calls. The fewer separate shapes the CPU has to process, the higher is FPS. GPU utilization (or how much work your CPU managed to give the GPU) explains 98% of the FPS variance between the tests:
 
 <img src="meta/benchmarks/Utilization.png" width="500"/>
 
-No free lunch though. The game has to keep unique LOD nifs in memory, increasing RAM consumption. Not an issue in this case, as we are not close even to the 32bit 1.6GB limit, but depending on your setup (you don't use heavy retextures without OR/ENBoost memory patch, right?) this might be a consideration. 
+However, there’s no free lunch. The game has to keep unique LOD nifs in memory, increasing RAM consumption.  This isn’t an issue in this case, as we are not close even to the 32-bit 1.6GB limit, and you can hit north of 3GB with the 4GB patch and modern engine mods without crashing, but depending on your setup (you don't use heavy retextures without OR/ENBoost memory patch, right?) this might be a consideration. 
 
 <img src="meta/benchmarks/LongRunRAM.png" width="500"/>  
 
@@ -164,25 +164,25 @@ Short 10s recordings of FPS in 4 spots without moving or looking around.
 
 ***[Frostcrag](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Frostcrag_view.jpg)***
 
-The golden standard for a spot of LOD benchmark testing. You see *everything*. LOD becomes the key FPS limiting factor here, and merging objects achieves 2-3x increase in FPS. Note that RAEVWD and J3 Full switch places after merging -- that's where atlassing helps immensely.
+The gold standard for a spot of LOD benchmark testing. You see *everything*. LOD becomes the key FPS-limiting factor here, and merging objects achieves 2-3x increase in FPS. Note that RAEVWD and J3 Full switch places after merging -- that's where atlassing helps immensely.
 
 <img src="meta/benchmarks/Frostcrag.png" width="500"/>
 
 ***[Chorrol](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Chorrol_view.jpg)***
 
-Another panoramic vista, this time in the Colovian Highlands. You can spot several landmarks from there, including Chorrol, IC, and Frostcrag Tower.
+Another panoramic vista, this time in the Colovian Highlands. You can spot several prominent landmarks from there, including Chorrol, IC, and Frostcrag Tower.
 
 <img src="meta/benchmarks/Chorrol.png" width="500"/>
 
 ***[Bravil/Nibeney](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Nibeney_view.jpg)***
 
-Take a hike to the Boethia's Shrine for gorgeous views of Bravil and the Niben River. Just avoid the local wildlife that can include Clannfears and Daedroths in Dagon season.
+Hike to Boethia's Shrine for gorgeous views of Bravil and the Niben River. Just avoid the local wildlife which might include Clannfears and Daedroths in Dagon season!
 
 <img src="meta/benchmarks/Bravil.png" width="500"/>
 
 ***[Kvatch/Anvil/Golden Coast](https://raw.githubusercontent.com/slowpard/slowLODGen/refs/heads/main/meta/examples/Anvil_view.jpg)***
 
-A bit different benchmark with much more local objects rendered and much less LOD objects in sight, so the gaps are much narrower. Will have to merge local rocks next!
+A slightly different benchmark with many more local objects rendered and fewer LOD objects in sight, so performance gaps are much narrower. Will have to merge local rocks next!
 
 <img src="meta/benchmarks/Kvatch.png" width="500"/>
 
@@ -192,11 +192,11 @@ A bit different benchmark with much more local objects rendered and much less LO
 
 **Modlist:** everything. And J3 Performance (not "No rocks", this one has some 2080 rocks).
 
-Another benchmark that is run on an extremly loaded setup. Full Better Cities, almost full UL, everything that retextures can offer, tons of location mods (Arthmoor's villages, AFK Weye, MTC villages, SoC, etc), major quest mods, MOO and OOO. For main LOD package, J3 Performance is used. The same 3-minute flight around the Imperial Isle: the performance is doubled. So, is it helpful for overly modded setups? Yes, 100%.
+Another benchmark that is run on an extremly loaded setup. Full Better Cities, almost full UL, everything that retextures can offer, tons of location mods (Arthmoor's villages, AFK Weye, MTC villages, SoC, etc), major quest mods, MOO and OOO. For the main LOD package, J3 Performance is used. The same 3-minute flight around the Imperial Isle: the performance is doubled. So, is it helpful for overly modded setups? Yes, 100%.
 
 <img src="meta/benchmarks/Overmodded.png" width="500"/>
 
-What is more telling is how much time the game spends above 60FPS. In slowLODGen example you can enjoy 60FPS most of the time (many people limit FPS at 60) -- don't forget that the benchmark includes a lot of FPS-tanking cell loading, much more than during normal gameplay.
+What is more telling is how much time the game spends above 60FPS. In the slowLODGen test, you can enjoy 60FPS most of the time (many people limit FPS at 60) -- remember, the benchmark includes a lot of FPS-tanking cell loading, much more than during normal gameplay.
 
 <img src="meta/benchmarks/OvermoddedTimeAbove60FPS.png" width="500"/>
 
@@ -206,7 +206,7 @@ What is more telling is how much time the game spends above 60FPS. In slowLODGen
 
 **Modlist:** [ROTS guide](https://docs.google.com/document/d/1FX-Zripwp-DG7lIxsOIU3byYw-dg_iZVnaEUokHgmo8/edit)
 
-Not sure if it is an effect of large retextures or ORC water effects but the integrated GPU is completely overwhelmed, so any relief on CPU doesn't bring any tangible performance benefits. To the extent that *completely switching off* LOD mods doesn't bring any significant performance increases. Takeaway: ~~if you have an integrated GPU, use MTAEVWD~~ you have to know what performance bottlenecks for your system are. 
+Not sure if it is the effect of large retextures or ORC water effects, but the integrated GPU is completely overwhelmed, so any relief on CPU doesn't bring any tangible performance benefits. In fact, *completely switching off* LOD mods doesn't bring any notable performance increases. Takeaway: ~~if you have an integrated GPU, use MTAEVWD~~ you have to know what performance bottlenecks for your system are. 
 
 <img src="meta/benchmarks/LaptopPerformance.png" width="500"/>
 
