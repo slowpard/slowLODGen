@@ -31,6 +31,22 @@ The tool merges shapes across similar materials, so you want to use atlassed VWD
 
 Also, good news for [Better Cities](https://www.nexusmods.com/oblivion/mods/16513?tab=posts) users: meshes provided by the mod are atlassed.
 
+
+### **Some highly recommended performance and stability mods**
+
+[4GB Patch](https://www.nexusmods.com/oblivion/mods/45576)
+
+[Engine Bug Fixes](https://www.nexusmods.com/oblivion/mods/47085/?)
+
+[Blue's Engine Fix~~~es~~~](https://www.nexusmods.com/oblivion/mods/52700?)
+
+[AveSithis Engine Fixes](https://www.nexusmods.com/oblivion/mods/53911/)
+
+[DXVK](https://www.nexusmods.com/newvegas/mods/79299)
+
+[ORC 1.9.3](https://www.nexusmods.com/oblivion/mods/51927?) + [ORC preset](https://www.mediafire.com/file/bqlr5omwqdsltse/ORC_Custom_Configuration.7z/file) with essential performance features turned on and some not performance-heavy eye-candy
+
+
 ## **Installation\Usage**
 
 #### Wrye Bash or any other setup without a virtual FS
