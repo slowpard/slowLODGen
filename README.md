@@ -1,27 +1,27 @@
 
-slowLODGen is a TES 4: Oblivion tool that generates merged object LOD meshes that don't kill your performance. It replaces the good old TES4LODGen, offering a fully automated, (almost) one-click solution.
+slowLODGen is a TES 4: Oblivion tool that generates merged object LOD meshes without killing your performance. It replaces the good old TES4LODGen, offering a fully automated, (almost) one-click solution.
 
-_This screenshot was taken at 172fps_
+_Screenshot taken at 172fps. Hi, TES4LODGen!_
 <img src="meta/header.jpg">
 
 ## **Key Features**
-**Significant performance gains.** slowLODGen merges LOD meshes per every cell, drastically reducing the number of drawcalls, which leads to significantly higher FPS (up to ~3x in some test scenarios compared to TES4LODGen at cost of 100-300MB RAM consumption -- refer to the Benchmarks section).
+**Major performance gains.** slowLODGen merges LOD meshes cell-by-cell, drastically reducing draw calls and boosting FPS by up to 3x compared to TES4LODGen (The trade-off? 100–300 MB extra RAM usage—see Benchmarks).
 
-**Easy to use.** Installation and usage are incredibly simple — just double-click a .bat file, and the tool does the rest.
+**Simple to use.** Installation is easy — just unpack, double-click a .bat file, and the slowLODGen handles the rest.
 
-**Fully compatible.** Works with all mod setups and LOD packs, though for the best results it is recommended to use atlassed LOD packs.
+**Compatiblity and happiness.** Works seamlessly with all mod setups and LOD packs. For best results, atlassed LOD packs are recommended.
 
 >[!WARNING]
->**If you don't want to read instructions, at least read this: LOAD ORDER IS EXTREMELY IMPORTANT. Oblivion LOD system relies on full FormIDs of base objects for LOD objects. As base objects for merged meshes are defined in MergedLOD.esm, it is essential that you don't change its load order position after generation and ensure that its load order matches the load order stated in the description.**
+>**PSA for Readme Skimmers: LOAD ORDER IS EXTREMELY IMPORTANT. Oblivion's LOD system relies on full base objects FormIDs. Make sure MergedLOD.esm’s load order remains the same after generation, matching the load order stated in the esm description.**
 
-Discord for support: https://discord.gg/77tgjpvGZ3
+[Support Discord](https://discord.gg/77tgjpvGZ3)
 
 ## **Requirements**
 
-As with TES4LODGen, the tool needs _far object meshes to run. The list of recommended VWD packs is provided below. Additionally, bsa packing function requires having [SkyBSA](https://www.nexusmods.com/oblivion/mods/49568) installed.
+Like TES4LODGen, the tool requires _far object meshes. A list of recommended VWD packs is provided below. Additionally, BSA packing functionality requires [SkyBSA](https://www.nexusmods.com/oblivion/mods/49568).
 
 ### **Recommended LOD packs**
-The tool merges shapes across similar materials, so you want to use atlassed VWD packs. These 3 provide a good foundation for your LOD.
+The tool merges shapes across similar materials, so for best results, opt for atlassed VWD packs. Here are three solid options to form the foundation for your LOD:
 
 [J3 Atlassed VWD2](https://www.nexusmods.com/oblivion/mods/51732) - use Performance preset as a starting point and see if you are happy with performance
 
@@ -32,78 +32,82 @@ The tool merges shapes across similar materials, so you want to use atlassed VWD
 Also, good news for [Better Cities](https://www.nexusmods.com/oblivion/mods/16513?tab=posts) users: meshes provided by the mod are atlassed.
 
 
-### **Some highly recommended performance and stability mods**
+### **Performance and Stability Recommendations**
 
 [4GB Patch](https://www.nexusmods.com/oblivion/mods/45576)
 
 [Engine Bug Fixes](https://www.nexusmods.com/oblivion/mods/47085/?)
 
-[Blue's Engine Fix~~~es~~~](https://www.nexusmods.com/oblivion/mods/52700?)
+[Blue's Engine Fixes](https://www.nexusmods.com/oblivion/mods/52700?)
 
 [AveSithis Engine Fixes](https://www.nexusmods.com/oblivion/mods/53911/)
 
 [DXVK](https://www.nexusmods.com/newvegas/mods/79299)
 
-[ORC 1.9.3](https://www.nexusmods.com/oblivion/mods/51927?) + [ORC preset](https://www.mediafire.com/file/bqlr5omwqdsltse/ORC_Custom_Configuration.7z/file) with essential performance features turned on and some not performance-heavy eye-candy
+[ORC 1.9.3](https://www.nexusmods.com/oblivion/mods/51927?) + [a custom ORC preset](https://www.mediafire.com/file/bqlr5omwqdsltse/ORC_Custom_Configuration.7z/file) with essential performance features turned on and some not performance-heavy eye-candy
 
 
 ## **Installation\Usage**
 
 #### Wrye Bash or any other setup without a virtual FS
 1. Unpack the archive somewhere on your computer.
-2. Double-click on Launch `slowLODGen.bat` and wait for the tool to finish (depending on your setup can take 5-15 minutes)
-3. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
+2. Double-click `Launch slowLODGen.bat` and let the tool run (this can take 5–15 minutes depending on your setup).
+3. Ensure the load order of MergedLOD.esm in your mod manager matches the position stated in the esp description; if not, move it.
 
 #### MO2
 1. Unpack the archive somewhere on your computer.
-2. If you use a non-standard Oblivion directory, refer to the previous section for paths.
-3. Open LODGen_config.yaml with any text editor (e.g. Notepad) and set `write_bsa` to `write_bsa: True` (note that SkyBSA is required).
-4. Add `slowLODGen.bat` as an executable (Tools -> Executables... -> "+" -> "Add from file..."). 
+2. (Non-standard Oblivion directory users: refer to the next section for path settings.)
+3. Open `LODGen_config.yaml` with any text editor (e.g. Notepad) and set `write_bsa` to `True` (note that SkyBSA is required).
+4. Add `slowLODGen.bat` as an executable in MO2 (Tools -> Executables... -> "+" -> "Add from file..."). 
 5. Run the bat through **MO2** (select "Launch slowLODGen" in the list in the right pane and press the giant "Run" button)
-6. Wait for the tool to finish (depending on your setup can take 5-15 minutes)
-7. Check in the right pane that the load order position (right pane, `"Mod Index" column`) of MergedLOD.esm matches the load order position stated in the esp description (shown when yuou hover over the plugin) and that the file is active.
-8. Check that MergedLOD.esp is active and that it is loaded late in the load order.
+6. Wait for the tool to finish (this can take 5–15 minutes depending on your setup).
+7. Check that the load order position of MergedLOD.esm in the right pane ("Mod Index" column) matches the position stated in the esp description (shown when you hover over the plugin) and that the file is active.
+8. Check that MergedLOD.esp is active and that it is placed late in the load order.
 
 #### Regenerating *.lod files without remerging the meshes
-If you need to quickly update your *.lod files (for instance, because of some small load order changes or if you need to move the esm somewhere else), you can set `skip_mesh_generation: True` in LODGen_config.yaml. In this case, your merged meshes will be reused. 
+For quick updates to *.lod files (e.g. after a minor load order change or if you need to move the esm), set `skip_mesh_generation: True` in LODGen_config.yaml. This will reuse your existing merged meshes.
 
-#### Using non-standard (not matching the record in Windows registry) Oblivion directories (or several local installs)
-Normally you don't need this. But if you moved your Oblivion install into another folder without fixing the registry path, or you are running several Oblivion installs on one machine, this can be handy.
+#### For Non-Standard Oblivion Directories or Multiple Local Installs
+Normally you don't need this. However, if you've moved your Oblivion install to another folder without updating the registry path, or you are running multiple Oblivion installs on one system, this can be handy.
 
 1. Unpack the archive somewhere on your computer.
-2. Open LODGen_config.yaml with any text editor (e.g. Notepad)
-3. Set path to your Data folder in the field `game_folder`. Note that you have to use double slashes in the path. Example: `game_folder: "C:\\Games\\Oblivion\\Data"`
-4. If you use local Oblivion.ini setup (you know if you do), set the path to Plugins.txt file in `plugins_txt_path` field. Use double slashes: `plugins_txt_path: "C:\\Games\\Oblivion\\plugins.txt"`
-5. Double-click on Launch slowLODGen.bat and wait for the tool to finish (depending on your setup can take 5-15 minutes)
-6. Check in your mod manager that the load order position of MergedLOD.esm matches the position stated in the esp description; if not, move it
+2. Open LODGen_config.yaml in a text editor (e.g. Notepad)
+3. Set the path to your **Data** folder in the field `game_folder`, using double slashes for the path. Example: `game_folder: "C:\\Games\\Oblivion\\Data"`
+4. If using local Oblivion.ini setup (you know if you do), set the path to Plugins.txt in `plugins_txt_path` field. Use double slashes: `plugins_txt_path: "C:\\Games\\Oblivion\\plugins.txt"`
+5. Double-click ```Launch slowLODGen.bat``` and wait for the tool to finish (depending on your setup can take 5-15 minutes)
+6. Ensure the load order of MergedLOD.esm in your mod manager matches the position stated in the esp description; if not, move it.
 
 ## **FAQ**
 
 **OH NO MY LOD IS GONE**
 
-Re-read the instructions. Go into Wrye Bash or any other mod manager and check that the position of MergedLOD.esm matches the position stated in the description. If you use the bsa packing feature, check that MergedLOD.esp is active.
+Re-read the instructions. Open Wrye Bash or any other mod manager and check that the position of MergedLOD.esm matches the position stated in the plugin description. If you use the bsa packing feature, ensure that MergedLOD.esp is also active.
 
-**I don't see any improvements in performance; how can I ensure that the script has worked correctly?**
+**I don't see any performance gains. How can I ensure that the script worked?**
 
-Disable MergedLOD.esm and load into the game: if your LOD has disappeared, then the script has worked correctly and either you have some other performance bottleneck (for instance, you are GPU-bounded because of 400 ENBs slapped on top running on an integrated GPU), or you predominantly use non-atlassed shapes that don’t merge well.
+Disable MergedLOD.esm and load into the game: if your LOD has disappeared, then the script has worked correctly. The issue is likely some other performance bottleneck (e.g., running 400 ENBs on an integrated GPU), or you predominantly use non-atlassed shapes that don’t merge well.
+
+**Does it handle landscape LOD? Does it replace tes4ll? Is this a complete Oblivion equivalent of xLODGen?**
+
+Nope! Only object LOD is generated. You'll still need tes4ll for generating landscape LOD.
 
 **There are a lot of errors during mesh generation, is it bad?**
 
-Usually not, especially during mesh generation. Unfortunately, the quality of mod meshes for Oblivion is *not that good*, so these messages serve as a useful datapoint if you actually run into some issues and have to debug them. That said, if you experience any issues with meshes that result in visual problems, feel free to report them to us. Additionally, if there are error like “can’t open a NIF file, not a NIF file”, first try opening it in Nifskope, if you can’t – write to the NIF mod author, it is not our responsibility to create workaround for completely broken meshes.
+Usually not, especially during mesh generation. Unfortunately, the quality of mod meshes for Oblivion is *not that good*, so these messages serve as a useful datapoint if you ever need to troubleshoot. That said, if you experience any actual visual issues, let us know! For errors like “can’t open a NIF file / not a NIF file”, try opening it in Nifskope; if it fails, write to the NIF mod author, it is not our responsibility to create workarounds for completely broken meshes.
 
 **I get tons of warnings about HITMEs and duplicated IDs for my mods.**
 
-Not a problem for this tool, but you really need to reconsider using these mods on your setup for general potential stability issues so that's why the tool throws warnings.
+While these aren’t issues for slowLODGen, they might indicate that some of your mods could cause general stability issues. Hence, the warnings are for your reference.
 
-**Can I get rid of the esm/esp? Can I merge them? I need to install all Ilovekyciliazabi's so I need esp slots.**
+**Can I get rid of the esm/esp? Can I merge them?  I need to save plugin slots for Ilovekyciliazabi’s mods!**
 
-ESM you can’t merge (unless you are ready to write a binary patcher for the .lod files). Esp is a bit trickier. First, you don't need the esp if you don't use the bsa as it is only used for bsa loading. Second, you can load the bsa with any other esp, though I highly recommend this esp to be late in the load order as there are known instances of mods packing their own \*.lod files (or some mods like Hackdirt Alive packing .lod files for the author's setup for locations completely unrelated to Hackdirt, so you end up with seeing flying towers in Jeral Mountains).
+Unfortunately, the esm isn’t mergeable (unless you fancy writing a custom binary patcher for .lod files). Esp is a bit trickier. As for the esp, you can skip it if you’re not using the BSA, since its only function is to load the BSA. Second, you can load the bsa with any other esp, though I highly recommend to place this esp late in the load order as there are known instances of mods packing their own .lod files into BSAs (some mods like Hackdirt Alive even pack custom .lod files for the author's modlist, so you end up with seeing flying towers in Jeral Mountains).
 
 **The script immediately crashes with some sort of “found unknown escape character" or "no such directory" error.**
 
-If you changed something in the config file, read carefully the description of the settings. You need to use double slashes "\\" for all paths in the config. Also, make sure that you provided the correct paths, path to the Data folder and full path to plugins.txt – the examples are provided in the config.
+If you changed something in the config file, double-check the instructions carefully. You need to use double slashes (```\\```) for all paths in the config. Also, make sure that you have provided the correct paths, path to the Data folder and full path to plugins.txt – the examples are provided in the config.
 
-**I don't like atlassed LOD packs because they do not have AWLS features, can I use RAEVWD :lizard:?**
+**I don't like atlassed LOD packs because they do not have AWLS features, can I use RAEVWD? :lizard:**
 
 You can but performance will be significantly worse.
 
@@ -111,15 +115,15 @@ You can but performance will be significantly worse.
 
 😂
 
-**Why the need for an esm in the first place?**
+**Why do we need an esm at all?**
 
-Mostly to reduce the number of user reports claiming that their LOD is gone and reduce the maintenance time for users who change their LO often. .lod files save the information about object's base load-order dependent FormID – that means that any changes in MergedLOD.esm LO will break LOD. If it is placed very high in the LO, there is a little chance that any other LO changes would move the file.
+Mainly to cut down on support requests from users who’ve “lost” their LOD after changing load order. Also it helps to reduce the maintenance time for users who change their LO often. .lod files save the information based on load-order dependent FormID, so moving MergedLOD.esm in the load order will disrupt LOD. Placing it high in the load order minimizes these issues since it’s less likely to move during load order changes.
 
 **Technical explanation of load order shenanigans?**
 
-ESM: Oblivion uses a very weird LOD system. Every LOD object is recorded using its *full base record FormID* and information about its position, rotation, and scale. In case of merged LODs, I have to creatre a separate STAT object with a model path, and *full, load-order dependent* FormID of this STAT object is recorded into .lod files.
+ESM: Oblivion’s LOD system is, to put it mildly, unconventional. Every LOD object is recorded using its *full base record FormID* and information about its position, rotation, and scale. For merged LODs, I have to creatre separate STAT objects with model paths, and *full, load-order dependent* FormIDs of this STAT objects are recorded into .lod files.
 
-ESP: With SkyBSA, the priority of a bsa is based on the LO of the esp loader. Some mod authors include .lod files (and in case of some mods -- broken .lod file, hi, Hackdirt Alive!) into their bsas, and we need to overwrite them, so the later we load our bsa loader, the better. Btw, in case of vanilla BSA loader, if a file exists in several BSA archives (remember, that .lod files already exist in vanilla BSAs), the choice of a winning file is based on the moon phase, temperature in your room, FX rate of ZWD to GBP, and the number of Instagram followers of Sabrina Carpenter -- that's why we require SkyBSA when the option to pack LOD files to bsas is enabled.
+ESP: With SkyBSA, BSA loading priority follows the load order of the esp loader. Some mod authors include .lod files (and in case of some mods -- even broken .lod files, hi, Hackdirt Alive!) into their BSAs, so it’s best to load our BSA loader as late as possible. As for vanilla (non-SkyBSA) BSA loader, its choice of "winning" file (remember, that .lod files already exist in vanilla BSAs) is based on the moon phase, your room temperatures, the ZWD-USD exchange rate, and Sabrina Carpenter’s Instagram follower count. For sanity’s sake, we require SkyBSA when packing LOD files to BSAs.
 
 **Why can't you provide a single exe executable like Wrye Bash?**
 
