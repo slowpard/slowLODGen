@@ -1147,21 +1147,9 @@ class NifProcessor:
                     adjusted_vector = np.matmul(f_scale * np.array([vertice.x, vertice.y, vertice.z]), m_rotation)
                     temp_vertice.x = adjusted_vector[0] + m_translation[0]
                     temp_vertice.y = adjusted_vector[1] + m_translation[1]
-                    temp_vertice.z = adjusted_vector[2] + m_translation[2]
-                    #vertice_list[i] = np.add(adjusted_vector, m_translation)                          
+                    temp_vertice.z = adjusted_vector[2] + m_translation[2]                          
                     target_shape.data.vertices.append(temp_vertice)
 
-                vertice_list = np.zeros((len(target_shape.data.vertices), 3)) 
-                for vertice in target_shape.data.vertices:
-                    vertice_list[i] = [vertice.x, vertice.y, vertice.z]
-                average_point = np.mean(vertice_list, axis=0)
-                distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
-                target_shape.data.center.x = average_point[0]
-                target_shape.data.center.y = average_point[1]
-                target_shape.data.center.z = average_point[2]
-                target_shape.data.radius = distance
-                vertice_list = None
-                               
 
                 for normal in trishape.data.normals:
                     normal_vector = np.matmul(np.array([normal.x, normal.y, normal.z]), m_rotation)
@@ -1244,6 +1232,22 @@ class NifProcessor:
                                 self.master_nif.roots[0].controller.object_palette.objs[-1].av_object = target_shape
                                 self.master_nif.roots[0].controller.object_palette.num_objs += 1
 
+
+    def update_nif_radius_and_center(self):
+                
+        for shape in self.master_nif.roots[0].children:
+            if isinstance(shape, pyffi.formats.nif.NifFormat.NiTriShape):
+                vertice_list = np.zeros((len(shape.data.vertices), 3)) 
+                for i, vertice in enumerate(shape.data.vertices):
+                    vertice_list[i] = [vertice.x, vertice.y, vertice.z]
+                average_point = np.mean(vertice_list, axis=0)
+                distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
+                shape.data.center.x = average_point[0]
+                shape.data.center.y = average_point[1]
+                shape.data.center.z = average_point[2]
+                shape.data.radius = distance
+                vertice_list = None
+                               
 
     def process_nif_root(self, data, translation=[0, 0, 0], rotation=[0, 0, 0], scale=1.0):
         m_translation = np.array(translation) 
@@ -1347,7 +1351,7 @@ class NifProcessor:
     def SaveNif(self, nif_path):
 
         logging.debug(f'Saving {nif_path}')
-        
+        self.update_nif_radius_and_center()
         directory = os.path.dirname(nif_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
