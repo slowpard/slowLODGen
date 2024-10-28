@@ -182,9 +182,6 @@ class Record:
     def parse_subrecords(self, data):
         offset = 0
 
-        if self.sig == 'BOOK': #a quick bandaid for broken bashed patch subrecords
-            return
-        
         while offset < len(data):
             sig = data[offset:offset+4].decode('utf-8')
             if sig == 'OFST':
@@ -360,12 +357,12 @@ class RecordUseless(Record):
         self.sig = sig  # str 4 bytes
         if sig == 'REFR':
             self.sig = 'REFU'
-        self.data_size = data_size      # uint32
-        self.flags = flags              # uint32
+        #self.data_size = data_size      # uint32
+        #self.flags = flags              # uint32
         self.form_id = form_id          # uint32
-        self.vc_info = vc_info          # uint32
+        #self.vc_info = vc_info          # uint32
         self.data = None                # raw bytes
-        self.subrecords = []
+        #self.subrecords = []
 
         
     def parse_subrecords(self, data):
