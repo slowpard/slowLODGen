@@ -1240,15 +1240,43 @@ class NifProcessor:
                 vertice_list = np.zeros((len(shape.data.vertices), 3)) 
                 for i, vertice in enumerate(shape.data.vertices):
                     vertice_list[i] = [vertice.x, vertice.y, vertice.z]
-                average_point = np.mean(vertice_list, axis=0)
-                distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
+                #average_point = np.mean(vertice_list, axis=0)
+                #distance = np.max(np.linalg.norm(vertice_list - average_point, axis=1))
+                average_point, distance = self.ritter_bounding_sphere(vertice_list)
                 shape.data.center.x = average_point[0]
                 shape.data.center.y = average_point[1]
                 shape.data.center.z = average_point[2]
                 shape.data.radius = distance
+                
                 vertice_list = None
-                               
 
+                               
+    def ritter_bounding_sphere(self, points):
+        
+        #choose some point, choose the fartherst point from it
+        p1 = points[0]
+        distances = np.linalg.norm(points - p1, axis=1)
+        p2 = points[np.argmax(distances)]
+        
+        #choose fartherst point from p2
+        distances = np.linalg.norm(points - p2, axis=1)
+        p3 = points[np.argmax(distances)]
+        
+        #create a  sphere with center at midpoint of A and B, radius half their distance
+        center = (p2 + p3) / 2
+        radius = np.linalg.norm(p2 - p3) / 2
+        
+        #now expand the sphere
+        for p in points:
+            dist_to_center = np.linalg.norm(p - center)
+            if dist_to_center > radius:
+                #if a point is outside the sphere, move/expand the sphere to include it
+                new_radius = (radius + dist_to_center) / 2
+                center += (p - center) * ((dist_to_center - radius) / (2 * dist_to_center))
+                radius = new_radius
+    
+        return center, radius
+    
     def process_nif_root(self, data, translation=[0, 0, 0], rotation=[0, 0, 0], scale=1.0):
         m_translation = np.array(translation) 
         m_rotation = self.MatrixfromEulerAngles_zyx(rotation[0], rotation[1], rotation[2])
