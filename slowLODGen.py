@@ -9,7 +9,7 @@ import struct
 import zlib
 import math
 import shutil
-from NifMerger.NifProcessor import NifProcessor
+from processors.NifProcessor import NifProcessor
 import gc
 import csv
 
