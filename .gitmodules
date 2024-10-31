@@ -1,0 +1,3 @@
+[submodule "processors/NifProcessor"]
+	path = processors/NifProcessor
+	url = https://github.com/slowpard/NifMerger.git
