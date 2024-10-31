@@ -357,11 +357,11 @@ class RecordUseless(Record):
         self.sig = sig  # str 4 bytes
         if sig == 'REFR':
             self.sig = 'REFU'
-        #self.data_size = data_size      # uint32
+        self.data_size = data_size      # uint32
         #self.flags = flags              # uint32
         self.form_id = form_id          # uint32
         #self.vc_info = vc_info          # uint32
-        self.data = None                # raw bytes
+        #self.data = None                # raw bytes
         #self.subrecords = []
 
         
