@@ -1,0 +1,3 @@
+[submodule "NifMerger"]
+	path = NifMerger
+	url = https://github.com/slowpard/NifMerger.git
