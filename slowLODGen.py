@@ -1043,6 +1043,10 @@ for obj_id in dict(sorted(object_dict.items())):
 merger = NifProcessor()
 merger.EMPTY_NIF_PATH = empty_nif_template
 
+merger.IGNORE_COLLISIONS = True
+merger.SKIP_TANGENT_SPACE_GENERATION = True
+merger.IGNORE_AWLS = True 
+
 def MiddleOfCellCalc(cell_x, cell_y):
     
     #returns coordinates of the cell center, useful for large cell-size merges
