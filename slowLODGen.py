@@ -325,6 +325,19 @@ class RecordSTAT(Record):
             if subrecord.sig == 'MODL':                
                 self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
 
+
+class RecordACTI(Record):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+        self.model_filename = None
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        
+
+    def parse_subrecords(self, data):
+        super().parse_subrecords(data)
+        for subrecord in self.subrecords:
+            if subrecord.sig == 'MODL':                
+                self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
+
 class RecordTREE(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
         self.model_filename = None
@@ -472,6 +485,8 @@ class ESPParser:
             return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group.parent_worldspace)
         elif record_type == 'STAT':
             return RecordSTAT(record_type, data_size, flags, form_id, vc_info, record_data)
+        elif record_type == 'ACTI':
+            return RecordACTI(record_type, data_size, flags, form_id, vc_info, record_data)
         elif record_type == 'TREE':
             return RecordTREE(record_type, data_size, flags, form_id, vc_info, record_data)
         elif record_type == 'WRLD':
@@ -848,7 +863,7 @@ load_order = sort_esp_list(plugins_txt, folder)
 
 logging.info(f'{load_order}')
 
-signatures = ['REFR', 'STAT', 'TREE']
+signatures = ['REFR', 'STAT', 'TREE', 'ACTI']
 object_dict = {}
 
 try:
@@ -977,7 +992,7 @@ logging.info('Processing base objects...')
 #going through every STAT and TREE and understanding if it can be VWD
 for obj in object_dict:
     
-    if object_dict[obj].sig == 'STAT':
+    if object_dict[obj].sig == 'STAT' or object_dict[obj].sig == 'ACTI':
         mesh_found = False
         try:
             if os.path.exists(os.path.join(folder, 'meshes', object_dict[obj].model_filename.lower().replace('.nif', '_far.nif'))):
@@ -1083,7 +1098,7 @@ for worldspace in LODGen:
             z_buffer = 0
             obj_to_merge = []
             for obj in LODGen[worldspace][i][j]:
-                if object_dict[obj[0]].sig == 'STAT':
+                if object_dict[obj[0]].sig == 'STAT' or object_dict[obj[0]].sig == 'ACTI':
                     if object_dict[obj[0]].model_filename.lower() in meshes_to_skip:
                         continue
                     if skip_nif_generation:
