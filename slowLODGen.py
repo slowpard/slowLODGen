@@ -479,7 +479,7 @@ class ESPParser:
         flags = header[2]
         form_id = header[3]
         vc_info = header[4]
-        if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL'):
+        if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL', 'ACTI'):
             record_data = f.read(data_size)
         if record_type == 'REFR' and parent_group.parent_worldspace:
             return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group.parent_worldspace)
