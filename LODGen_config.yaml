@@ -29,6 +29,9 @@ game_folder: ""
 #default: ""
 plugins_txt_path: ""
 
+#geometry under water is not merged
+water_culling: True
+
 ###ADVANCED SETTINGS, DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING
 
 #you can use custom bsa name prefix if you need to save a esp slot and use a different esp to load the bsa

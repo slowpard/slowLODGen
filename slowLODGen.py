@@ -131,6 +131,12 @@ try:
 except:
     triangle_profiler = False
 
+try:
+    water_culling = config["water_culling"]
+except:
+    water_culling = False
+
+
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -159,7 +165,7 @@ class Record:
     FLAG_COMPRESSED = 0x00040000
     FLAG_CANT_WAIT = 0x00080000 
 
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         #logging.debug('Creating a record')
         self.sig = sig  # str 4 bytes
         self.data_size = data_size      # uint32
@@ -168,16 +174,17 @@ class Record:
         self.vc_info = vc_info          # uint32
         self.data = data                # raw bytes
         self.subrecords = []
+        self.parent_group = parent_group
 
-
-
-        if not self.is_compressed():                 
+        if self.is_compressed() and False: #disabled for now, used for testing landscape culling
+            data = zlib.decompress(data[4:])          
+            self.parse_subrecords(data)
+        else:
             self.parse_subrecords(data)
 
     def is_compressed(self):
         return (self.flags & self.FLAG_COMPRESSED) != 0
     
-
 
     def parse_subrecords(self, data):
         offset = 0
@@ -236,9 +243,9 @@ class Record:
             formid_map[self.form_id] = self
     
 class RecordTES4(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         self.master_files = []
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
 
     def parse_subrecords(self, data):
@@ -251,7 +258,7 @@ class RecordTES4(Record):
         #print(self.master_files)
 
 class RecordREFR(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_worldspace, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, parent_worldspace, **kwargs):
         self.position = None
         self.rotation = None
         self.scale = None
@@ -259,7 +266,7 @@ class RecordREFR(Record):
         self.stateoppositeofparent_flag = None
         self.baserecordformid = None
         self.parent_worldspace = None
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         self.parent_worldspace = parent_worldspace
 
         
@@ -314,9 +321,9 @@ class RecordREFR(Record):
         return None, False
 
 class RecordSTAT(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         self.model_filename = None
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
 
     def parse_subrecords(self, data):
@@ -327,9 +334,9 @@ class RecordSTAT(Record):
 
 
 class RecordACTI(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         self.model_filename = None
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
 
     def parse_subrecords(self, data):
@@ -339,10 +346,10 @@ class RecordACTI(Record):
                 self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
 
 class RecordTREE(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         self.model_filename = None
         
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
 
     def parse_subrecords(self, data):
@@ -352,9 +359,9 @@ class RecordTREE(Record):
                 self.model_filename = subrecord.data.decode('windows-1252').rstrip('\x00')
 
 class RecordWRLD(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         self.editor_id = None
-        super().__init__(sig, data_size, flags, form_id, vc_info, data, **kwargs)
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
         
     def parse_subrecords(self, data):
@@ -362,10 +369,78 @@ class RecordWRLD(Record):
         for subrecord in self.subrecords:
             if subrecord.sig == 'EDID':
                 self.editor_id = subrecord.data.decode('windows-1252').rstrip('\x00')
-                
+
+class RecordCELL(Record):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, parent_worldspace, **kwargs):
+        self.parent_worldspace = parent_worldspace
+        self.cell_coordinates = None
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
+        
+
+    def parse_subrecords(self, data):
+        super().parse_subrecords(data)
+        for subrecord in self.subrecords:
+            if subrecord.sig == 'XCLC':
+                self.cell_coordinates = struct.unpack_from('<ii', subrecord.data)
+
+class RecordLAND(Record):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
+        self.heightmap = []
+        super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
+        
+
+    def parse_subrecords(self, data):
+        offset = 0       
+        while offset < len(data):
+            
+            
+            sig = data[offset:offset+4].decode('utf-8')
+            size = struct.unpack_from('<H', data, offset+4)[0]
+
+            if sig != 'VHGT':
+                offset += 6 + size
+                continue
+
+            sub_data = data[offset+6:offset+6+size]
+            subrecord = Subrecord(sig, size, sub_data)
+            self.subrecords.append(subrecord)
+            offset += 6 + size  # 6 bytes header + data
+
+        self.data = None
+
+
+    def parse_heightmap(self):
+        heightmap = [[0] * 33 for _ in range(33)]
+        cell_offset = None
+        for subrecord in self.subrecords:
+            if subrecord.sig == 'VHGT':
+                cell_offset = struct.unpack('<f', subrecord.data[:4])[0] 
+                gradient_data = struct.unpack('1089b', subrecord.data[4:4+1089])
+
+        if not cell_offset:
+            return False
+        
+        offset = cell_offset * 8
+        for i in range(1089):
+            row = i // 33
+            col = i % 33
+
+            if col == 0:
+                row_offset = 0
+                offset += gradient_data[i] * 8
+            else:
+                row_offset += gradient_data[i] * 8
+
+            heightmap[row][col] = offset + row_offset
+
+        return heightmap
+
+
+
+
 
 class RecordUseless(Record):
-    def __init__(self, sig, data_size, flags, form_id, vc_info, data, **kwargs):
+    def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
         #print('Creating a record')
         self.sig = sig  # str 4 bytes
         if sig == 'REFR':
@@ -384,7 +459,7 @@ class RecordUseless(Record):
 
 
 class Group:
-    def __init__(self, sig, group_size, label, typeid, version, records, parent_worldspace,**kwargs):
+    def __init__(self, sig, group_size, label, typeid, version, parent_group, records, parent_worldspace,**kwargs):
         self.sig = sig                  # 4 bytes
         self.size = group_size          # uint32
         self.label = label              # uint32
@@ -392,6 +467,7 @@ class Group:
         self.version = version          # uint32
         self.records = records          # list
         self.parent_worldspace = parent_worldspace          # list of worldspace records
+        self.parent_group = parent_group
 
     def serialize(self):
         content = b''.join(r.serialize() for r in self.records)
@@ -409,6 +485,7 @@ class ESPParser:
         self.records = []               # Top-level records and groups
         self.formid_map = {}            # FormID to Record mapping
         self.load_order = []
+        self.exterior_cell_list = []
 
     def parse(self, filename):
         with open(filename, 'rb') as f:
@@ -430,7 +507,7 @@ class ESPParser:
                 if not header_b or len(header_b) < 12:
                     break
                 label, group_type, vc_info = struct.unpack('<III', header_b)
-                group = Group(record_type, group_size, label, group_type, vc_info, [], None)
+                group = Group(record_type, group_size, label, group_type, vc_info, None, [], None)
                 group_end = offset + group_size
                 self._parse_group(f, group_end, group)
                 self.records.append(group)
@@ -454,7 +531,7 @@ class ESPParser:
                 group_size = struct.unpack('<I', group_size_bytes)[0]
                 label_b = f.read(12)
                 label, group_type, vc_info = struct.unpack('<III', label_b)
-                subgroup = Group(record_type, group_size, label, group_type, vc_info, [], group.parent_worldspace)
+                subgroup = Group(record_type, group_size, label, group_type, vc_info, group, [], group.parent_worldspace)
                 group_end = offset + group_size 
                 self._parse_group(f, group_end, subgroup)
                 group.records.append(subgroup)
@@ -479,27 +556,34 @@ class ESPParser:
         flags = header[2]
         form_id = header[3]
         vc_info = header[4]
-        if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL', 'ACTI'):
+        if record_type in ('REFR', 'STAT', 'TREE', 'WRLD', 'TES4', 'ACHR', 'ACRE', 'CELL', 'ACTI', 'LAND'):
             record_data = f.read(data_size)
         if record_type == 'REFR' and parent_group.parent_worldspace:
-            return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group.parent_worldspace)
+            return RecordREFR(record_type, data_size, flags, form_id, vc_info, record_data, parent_group, parent_group.parent_worldspace)
         elif record_type == 'STAT':
-            return RecordSTAT(record_type, data_size, flags, form_id, vc_info, record_data)
+            return RecordSTAT(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         elif record_type == 'ACTI':
-            return RecordACTI(record_type, data_size, flags, form_id, vc_info, record_data)
+            return RecordACTI(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         elif record_type == 'TREE':
-            return RecordTREE(record_type, data_size, flags, form_id, vc_info, record_data)
+            return RecordTREE(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         elif record_type == 'WRLD':
-            return RecordWRLD(record_type, data_size, flags, form_id, vc_info, record_data)
+            return RecordWRLD(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         elif record_type == 'TES4':
-            TES4Record = RecordTES4(record_type, data_size, flags, form_id, vc_info, record_data)
+            TES4Record = RecordTES4(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
             for i, master in enumerate(TES4Record.master_files):
                 self.load_order.append([i, master])
             return TES4Record
-        elif record_type in ('ACHR', 'ACRE', 'CELL'):
-            return Record(record_type, data_size, flags, form_id, vc_info, record_data)
+        #elif record_type == 'CELL':
+        #    cell_record = RecordCELL(record_type, data_size, flags, form_id, vc_info, record_data, parent_group, parent_group.parent_worldspace)
+        #    if cell_record.cell_coordinates:
+        #        self.exterior_cell_list.append([parent_group.parent_worldspace, cell_record.cell_coordinates, cell_record, parent_group])
+        #    return cell_record
+        #elif record_type == 'LAND':
+        #    return RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
+        elif record_type in ('ACHR', 'ACRE'):
+            return Record(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         else:
-            return RecordUseless(record_type, data_size, flags, form_id, vc_info, None)
+            return RecordUseless(record_type, data_size, flags, form_id, vc_info, None, parent_group)
         #everything else not needed for LOD
             
 
@@ -863,7 +947,7 @@ load_order = sort_esp_list(plugins_txt, folder)
 
 logging.info(f'{load_order}')
 
-signatures = ['REFR', 'STAT', 'TREE', 'ACTI']
+signatures = ['REFR', 'STAT', 'TREE', 'ACTI'] #, 'LAND', 'CELL']
 object_dict = {}
 
 try:
@@ -944,7 +1028,44 @@ for plugin in load_order:
         if parser.formid_map[record].sig in signatures:
             object_dict[record] = parser.formid_map[record]
 
-logging.info('Processing LOD files')
+logging.info('Processing LAND records for culling...')
+
+
+'''
+
+#landscape culling tests
+land_min_height = {}
+
+for object_id in object_dict:
+    if object_dict[object_id].sig == 'LAND':
+        land_record = object_dict[object_id]
+        i = land_record.parent_group.parent_group.parent_group.records.index(land_record.parent_group.parent_group)
+        try:
+            cell = land_record.parent_group.parent_group.parent_group.records[i-1]
+        except:
+            continue
+        if type(cell) != RecordCELL:
+            continue
+        worldspace = cell.parent_worldspace.editor_id
+
+        
+        try:
+            x = cell.cell_coordinates[0]
+            y = cell.cell_coordinates[1]
+        except:
+            continue
+
+        if not worldspace in land_min_height:
+            land_min_height[worldspace] = {}
+        if not x in land_min_height[worldspace]:
+            land_min_height[worldspace][x] = {}
+        temp_heightmap = land_record.parse_heightmap()
+        if temp_heightmap:
+            land_min_height[worldspace][x][y] = min_value = min(min(row) for row in temp_heightmap)
+
+'''
+
+logging.info('Processing LOD meshes...')
 
 bsa_files = [f for f in os.listdir(folder) if f.endswith('.bsa')]
 
@@ -1075,7 +1196,7 @@ def MiddleOfCellCalc(cell_x, cell_y):
 record_offset = 2048 #first formid of the file
 
 MODB_Template = Subrecord('MODB', 4, struct.pack('f', 2048.0))
-STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, [], None) #1347768903 = 'STAT'
+STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, None, [], None) #1347768903 = 'STAT'
 
 end_time = time.time()                    
 elapsed_time = end_time - start_time
@@ -1111,9 +1232,19 @@ for worldspace in LODGen:
                     
 
             if mergeable_count > 1:
+
+
                 
                 average_z = z_buffer / mergeable_count
+                #try:
+                #    min_land_height = land_min_height[worldspace][i][j] - 100 - average_z
+                #except:
+                #    min_land_height = -60000 - average_z
                 middle_of_cell = MiddleOfCellCalc(i, j)
+                if water_culling:
+                    sea_level = - average_z
+                    merger.Z_CULLING_FLAG = True
+                    merger.Z_CULLING_LEVEL = sea_level #max(sea_level, min_land_height)
 
                 if not skip_nif_generation:
                     merger.CleanTemplates()
@@ -1140,32 +1271,39 @@ for worldspace in LODGen:
                         triangle_logger[mesh_file] += merger.triangle_count - triangle_count
 
                     #merger.CleanAnimationController()
-                    merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
-                    shutil.copyfile(empty_nif_template, \
-                                    os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
+                    merger.PreSaveProcessing()
+                    vert_count = merger.CalculateVertCount()
+                    if vert_count > 0:
+                        merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
+                        shutil.copyfile(empty_nif_template, \
+                                        os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '.nif'))
                     
                 else:
+                    vert_count = -1
                     if os.path.exists(os.path.join(folder, 'LODMerger', 'meshes', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif')):
                         shutil.copyfile(os.path.join(folder, 'LODMerger', 'meshes', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'), \
                                         os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
+
+
+                if vert_count != 0:
+
+                    record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
+                                                + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
+                    STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'', None)
+                    EDID_Template = Subrecord('EDID', len(record_edid), \
+                                            record_edid.encode('utf-8'))
+                    MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
+                                            ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('utf-8') + b'\x00')
+                    STATRecord.subrecords.append(EDID_Template)
+                    STATRecord.subrecords.append(MODL_Template)
+                    STATRecord.subrecords.append(MODB_Template)
+                    STAT_Group.records.append(STATRecord)
                     
-                record_edid = 'LOD' + worldspace + ('n' if i < 0 else '') \
-                                            + str(abs(i)) + ('n' if j < 0 else '')  + str(abs(j)) + '\x00'
-                STATRecord = RecordSTAT('STAT', 0, 0, record_offset, 0, b'')
-                EDID_Template = Subrecord('EDID', len(record_edid), \
-                                        record_edid.encode('utf-8'))
-                MODL_Template = Subrecord('MODL', len('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif\x00'), \
-                                        ('MergedLOD\\' + worldspace + '_' + str(i) + '_' + str(j) + '.nif').encode('utf-8') + b'\x00')
-                STATRecord.subrecords.append(EDID_Template)
-                STATRecord.subrecords.append(MODL_Template)
-                STATRecord.subrecords.append(MODB_Template)
-                STAT_Group.records.append(STATRecord)
-                
 
-                LODGen[worldspace][i][j] = [obj for obj in LODGen[worldspace][i][j] if obj not in obj_to_merge]
-                LODGen[worldspace][i][j].append([record_offset + mergedLOD_index * 16777216, [middle_of_cell[0], middle_of_cell[1], middle_of_cell[2] + average_z], [0, 0, 0], [1.0]])
+                    LODGen[worldspace][i][j] = [obj for obj in LODGen[worldspace][i][j] if obj not in obj_to_merge]
+                    LODGen[worldspace][i][j].append([record_offset + mergedLOD_index * 16777216, [middle_of_cell[0], middle_of_cell[1], middle_of_cell[2] + average_z], [0, 0, 0], [1.0]])
 
-                record_offset += 1
+                    record_offset += 1
 
     #gc.collect()    #doing it every cell causes performance issues
                     #but it is still needed as Python doesn't clean memory properly in loops like that
@@ -1187,7 +1325,7 @@ HEDRTemplate = Subrecord('HEDR', 12, struct.pack('fII', 1.0, record_offset - 204
 CNAMTemplate = Subrecord('CNAM', 7, b'LODGen\x00')
 mod_description = ('Generated LODGen resource file.\nMust be put at load order position ' + format(mergedLOD_index, '02X') + ' (Mod Index column in MO2)\x00').encode('windows-1252')
 SNAMTemplate = Subrecord('SNAM', len(mod_description), mod_description)
-TES4Record = RecordTES4('TES4', 0, 1, 0, 0, b'', master_files=[]) #flags = 1 == esm
+TES4Record = RecordTES4('TES4', 0, 1, 0, 0, b'', None, master_files=[]) #flags = 1 == esm
 TES4Record.subrecords.append(HEDRTemplate)
 TES4Record.subrecords.append(CNAMTemplate)
 TES4Record.subrecords.append(SNAMTemplate)
