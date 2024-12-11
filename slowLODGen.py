@@ -1183,6 +1183,8 @@ merger.IGNORE_COLLISIONS = True
 merger.SKIP_TANGENT_SPACE_GENERATION = True
 merger.IGNORE_AWLS = True 
 
+#merger.CACHE_NIFS = True
+
 def MiddleOfCellCalc(cell_x, cell_y):
     
     #returns coordinates of the cell center, useful for large cell-size merges
@@ -1273,6 +1275,7 @@ for worldspace in LODGen:
                     #merger.CleanAnimationController()
                     merger.PreSaveProcessing()
                     vert_count = merger.CalculateVertCount()
+                    merger.simple_nif_structure()
                     if vert_count > 0:
                         merger.SaveNif(os.path.join(folder, 'meshes\\MergedLOD', worldspace + '_' + str(i) + '_' + str(j) + '_far.nif'))
                         shutil.copyfile(empty_nif_template, \
