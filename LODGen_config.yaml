@@ -152,4 +152,4 @@ hardcoded_bsas:
  - "N - Misc.bsa"
  
 #if True only vwd flagged references will be merged
-only_vwd_flagged_refs: True
+only_vwd_flagged_refs: False
