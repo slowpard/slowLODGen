@@ -1181,7 +1181,7 @@ for obj_id in dict(sorted(object_dict.items())):
                         LODGen[worldspace][x_cell] = {}
                     if not y_cell in LODGen[worldspace][x_cell]:
                         LODGen[worldspace][x_cell][y_cell] = []
-                    LODGen[worldspace][x_cell][y_cell].append([obj.baserecordformid, obj.position, obj.rotation, obj.scale])
+                    LODGen[worldspace][x_cell][y_cell].append((obj.baserecordformid, obj.position, obj.rotation, obj.scale))
 
 merger = NifProcessor()
 merger.EMPTY_NIF_PATH = empty_nif_template
@@ -1263,9 +1263,9 @@ for worldspace in LODGen:
                         path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                         if not os.path.exists(path):
                             path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
-                        position = [obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z]
+                        position = (obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z)
                         #radians to degrees
-                        rotations = [obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 ]
+                        rotations = (obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 )
                         scale = obj[3]
                         if scale is None:
                             scale = 1.0
@@ -1401,9 +1401,8 @@ for worldspace in LODGen:
                             #xedit magic numbers, help trees not to look black (Oblivion doesn't like integer-like floats?)
                         
                         #rotation in radians
-                        for r in temp_refs:
-                            r[2] = [angle % 6.28318530718 for angle in r[2]]                            
-                            lod_file.write(struct.pack('<fff', r[2][0], r[2][1], r[2][2]))
+                        for r in temp_refs:                     
+                            lod_file.write(struct.pack('<fff', *(angle % 6.28318530718 for angle in r[2])))
 
                         for r in temp_refs:
                             scale = r[3]
