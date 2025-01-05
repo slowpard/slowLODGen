@@ -136,6 +136,11 @@ try:
 except:
     water_culling = False
 
+try:
+    only_vwd_flagged_refs = config["only_vwd_flagged_refs"]
+except:
+    only_vwd_flagged_refs = False
+
 
 
 class Subrecord:
@@ -1156,6 +1161,8 @@ for obj_id in dict(sorted(object_dict.items())):
         if obj.parent_worldspace:
             if obj.baserecordformid in far_statics or obj.baserecordformid in far_trees:
                 if not obj.is_disabled(): #TODO: parent checks
+                    if only_vwd_flagged_refs and not (obj.flags & 0x00008000):
+                        continue
                     worldspace = obj.parent_worldspace.editor_id
                     if worldspace in worldspaces_to_skip:
                         continue

@@ -151,3 +151,5 @@ hardcoded_bsas:
  - "N - Textures2.bsa"
  - "N - Misc.bsa"
  
+#if True only vwd flagged references will be merged
+only_vwd_flagged_refs: True
