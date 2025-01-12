@@ -385,14 +385,20 @@ class RecordCELL(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, parent_worldspace, **kwargs):
         self.parent_worldspace = parent_worldspace
         self.cell_coordinates = None
+        self.water_type = None
+        self.water_level = None
         super().__init__(sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs)
         
 
     def parse_subrecords(self, data):
         super().parse_subrecords(data)
         for subrecord in self.subrecords:
-            if subrecord.sig == 'XCLC':
+            if subrecord.sig == 'XCLC': #cell coordinates
                 self.cell_coordinates = struct.unpack_from('<ii', subrecord.data)
+            elif subrecord.sig == 'XCWT': #water type, formid
+                self.water_type = struct.unpack_from('<I', subrecord.data)[0]
+            elif subrecord.sig == 'XCLW': #water level, float
+                self.water_level = struct.unpack_from('<f', subrecord.data)[0]
 
 class RecordLAND(Record):
     def __init__(self, sig, data_size, flags, form_id, vc_info, data, parent_group, **kwargs):
