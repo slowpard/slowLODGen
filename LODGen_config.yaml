@@ -44,6 +44,11 @@ custom_bsa_name: ""
 #possible values: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
 debug_level: "INFO"
 
+#if set to True, nifs loaded by pyffi will not be unloaded on every merge
+#memory-intensive but much faster
+#use if you can spare 4GB+ of RAM during generation
+cache_loaded_nifs: False
+
 #generates a csv that has statistic on how much each _far mesh contributes to the total triangle count
 #useful for optimizing LOD packs or finding bottlenecks
 triangle_profiler: False

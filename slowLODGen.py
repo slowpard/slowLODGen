@@ -142,6 +142,11 @@ except:
     only_vwd_flagged_refs = False
 
 
+try:
+    cache_loaded_nifs = config["cache_loaded_nifs"]
+except:
+    cache_loaded_nifs = False
+
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -1190,7 +1195,8 @@ merger.IGNORE_COLLISIONS = True
 merger.SKIP_TANGENT_SPACE_GENERATION = True
 merger.IGNORE_AWLS = True 
 
-#merger.CACHE_NIFS = True
+if cache_loaded_nifs:
+    merger.CACHE_NIFS = True
 
 def MiddleOfCellCalc(cell_x, cell_y):
     
