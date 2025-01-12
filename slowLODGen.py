@@ -186,7 +186,7 @@ class Record:
         self.subrecords = []
         self.parent_group = parent_group
 
-        if self.is_compressed() and False: #disabled for now, used for testing landscape culling
+        if self.is_compressed(): 
             data = zlib.decompress(data[4:])          
             self.parse_subrecords(data)
         else:
