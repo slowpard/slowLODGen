@@ -294,6 +294,7 @@ class RecordREFR(Record):
                 #print(self.scale)
             if subrecord.sig == 'XESP':
                 self.parentformid, self.stateoppositeofparent_flag = struct.unpack_from('<II', subrecord.data)
+        self.subrecords = None #clean memory a bit, we won't need raw subrecords
 
     def renumber_formids(self, formid_chg_map, formid_map):
         super().renumber_formids(formid_chg_map, formid_map)
