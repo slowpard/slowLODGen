@@ -503,6 +503,7 @@ class ESPParser:
         self.formid_map = {}            # FormID to Record mapping
         self.load_order = []
         self.exterior_cell_list = []
+        self.last_cell = None
 
     def parse(self, filename):
         with open(filename, 'rb') as f:
@@ -590,13 +591,14 @@ class ESPParser:
             for i, master in enumerate(TES4Record.master_files):
                 self.load_order.append([i, master])
             return TES4Record
-        #elif record_type == 'CELL':
-        #    cell_record = RecordCELL(record_type, data_size, flags, form_id, vc_info, record_data, parent_group, parent_group.parent_worldspace)
-        #    if cell_record.cell_coordinates:
-        #        self.exterior_cell_list.append([parent_group.parent_worldspace, cell_record.cell_coordinates, cell_record, parent_group])
-        #    return cell_record
         #elif record_type == 'LAND':
         #    return RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
+        elif record_type == 'CELL':
+            cell_record = RecordCELL(record_type, data_size, flags, form_id, vc_info, record_data, parent_group, parent_group.parent_worldspace)
+            if cell_record.cell_coordinates:
+                self.exterior_cell_list.append([parent_group.parent_worldspace, cell_record.cell_coordinates, cell_record, parent_group])
+            self.last_cell = cell_record
+            return cell_record
         elif record_type in ('ACHR', 'ACRE'):
             return Record(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         else:
