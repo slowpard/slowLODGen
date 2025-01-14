@@ -504,6 +504,7 @@ class ESPParser:
         self.load_order = []
         self.exterior_cell_list = []
         self.last_cell = None
+        self.waterplanes = []
 
     def parse(self, filename):
         with open(filename, 'rb') as f:
@@ -599,6 +600,24 @@ class ESPParser:
                 self.exterior_cell_list.append([parent_group.parent_worldspace, cell_record.cell_coordinates, cell_record, parent_group])
             self.last_cell = cell_record
             return cell_record
+        elif record_type == 'LAND' and self.last_cell:
+            if self.last_cell.water_level:
+                if self.last_cell.water_level > 0:
+                    temp_record = RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
+                    heightmap = temp_record.parse_heightmap()
+                    if heightmap:
+                        points_below_water = 0
+                        for i in heightmap:
+                            for j in i:
+                                if j < self.last_cell.water_level:
+                                    points_below_water += 1
+                        if points_below_water/1089 > 0.05 and self.last_cell.cell_coordinates:
+                            worldspace = self.last_cell.parent_worldspace.editor_id
+                            cell_xy = self.last_cell.cell_coordinates
+                            self.waterplanes.append((worldspace, cell_xy[0], cell_xy[1], self.last_cell.water_level))
+
+                    temp_record = None
+            return RecordUseless(record_type, data_size, flags, form_id, vc_info, None, parent_group)
         elif record_type in ('ACHR', 'ACRE'):
             return Record(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         else:
@@ -1023,6 +1042,8 @@ if mergedLOD_index == 0:
 
 load_order_lowercase = [x.lower() for x in load_order]
 
+waterplanes_list = {}
+
 for plugin in load_order:
     parser = ESPParser()
     logging.info('Reading: ' + plugin)
@@ -1046,6 +1067,14 @@ for plugin in load_order:
     for record in parser.formid_map:
         if parser.formid_map[record].sig in signatures:
             object_dict[record] = parser.formid_map[record]
+
+    for plane in parser.waterplanes:
+        worldspace, x, y, water_level = plane
+        if not worldspace in waterplanes_list:
+            waterplanes_list[worldspace] = {}
+        if not x in waterplanes_list[worldspace]:
+            waterplanes_list[worldspace][x] = {}
+        waterplanes_list[worldspace][x][y] = water_level
 
 logging.info('Processing LAND records for culling...')
 
@@ -1225,6 +1254,7 @@ STAT_Group = Group('GRUP', 0, 1413567571, 0, 0, None, [], None) #1347768903 = 'S
 end_time = time.time()                    
 elapsed_time = end_time - start_time
 
+waterplane_nif = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', 'waterplane.nif')
 
 
 logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
@@ -1253,28 +1283,45 @@ for worldspace in LODGen:
                     obj_to_merge.append(obj)
                     z_buffer += obj[1][2]
                     mergeable_count += 1
-                    
 
-            if mergeable_count > 1:
+            water_level = None
+            try:
+                water_level = waterplanes_list[worldspace][i][j]
+            except:
+                pass        
 
+            if mergeable_count > 1 or water_level:
 
-                
                 average_z = z_buffer / mergeable_count
+
+                if mergeable_count > 0:
+                    average_z = z_buffer / mergeable_count
+                else:
+                    average_z = 0
                 #try:
                 #    min_land_height = land_min_height[worldspace][i][j] - 100 - average_z
                 #except:
                 #    min_land_height = -60000 - average_z
                 middle_of_cell = MiddleOfCellCalc(i, j)
+
+
                 if water_culling:
                     sea_level = - average_z
+                    if water_level:
+                        sea_level = water_level - average_z
                     merger.Z_CULLING_FLAG = True
                     merger.Z_CULLING_LEVEL = sea_level #max(sea_level, min_land_height)
 
                 if not skip_nif_generation:
                     merger.CleanTemplates()
+                    skip_waterplane = False
+
                     for obj in obj_to_merge:
                     
                         mesh_file = object_dict[obj[0]].model_filename
+                        if "waterplane" in mesh_file.lower():
+                            skip_waterplane = True
+                            
                         path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                         if not os.path.exists(path):
                             path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
@@ -1293,6 +1340,9 @@ for worldspace in LODGen:
                         if mesh_file not in triangle_logger:
                             triangle_logger[mesh_file] = 0
                         triangle_logger[mesh_file] += merger.triangle_count - triangle_count
+
+                    if water_level and not skip_waterplane:
+                        merger.ProcessNif(waterplane_nif, [0, 0, water_level - average_z], [0, 0, 0], 1.0)
 
                     #merger.CleanAnimationController()
                     merger.PreSaveProcessing()
