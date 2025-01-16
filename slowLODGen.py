@@ -592,8 +592,6 @@ class ESPParser:
             for i, master in enumerate(TES4Record.master_files):
                 self.load_order.append([i, master])
             return TES4Record
-        #elif record_type == 'LAND':
-        #    return RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
         elif record_type == 'CELL':
             cell_record = RecordCELL(record_type, data_size, flags, form_id, vc_info, record_data, parent_group, parent_group.parent_worldspace)
             if cell_record.cell_coordinates:
@@ -1292,7 +1290,6 @@ for worldspace in LODGen:
 
             if mergeable_count > 1 or water_level:
 
-                average_z = z_buffer / mergeable_count
 
                 if mergeable_count > 0:
                     average_z = z_buffer / mergeable_count
