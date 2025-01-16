@@ -10,8 +10,9 @@ import zlib
 import math
 import shutil
 from NifMerger.NifProcessor import NifProcessor
-import gc
+#import gc
 import csv
+import psutil
 
 
 start_time = time.time()
@@ -143,7 +144,17 @@ except:
 
 
 try:
-    cache_loaded_nifs = config["cache_loaded_nifs"]
+    cache_loaded_nifs_ = config["cache_loaded_nifs"].lower()
+    if cache_loaded_nifs_ == "true":
+        cache_loaded_nifs = True
+    elif cache_loaded_nifs_ == "auto":
+        available_memory = psutil.virtual_memory().available #8GB is where nif-caching is reasonable
+        if available_memory < 7.5 * 1024 * 1024 * 1024:
+            cache_loaded_nifs = False
+        else:
+            cache_loaded_nifs = True
+    else:
+        cache_loaded_nifs = False
 except:
     cache_loaded_nifs = False
 
