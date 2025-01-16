@@ -159,6 +159,13 @@ except:
     cache_loaded_nifs = False
 
 
+try:
+    waterplanes_generation = config["waterplanes_generation"]
+except:
+    waterplanes_generation = False
+
+
+
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
         self.sig = sig   # str 4 bytes
@@ -610,22 +617,23 @@ class ESPParser:
             self.last_cell = cell_record
             return cell_record
         elif record_type == 'LAND' and self.last_cell:
-            if self.last_cell.water_level:
-                if self.last_cell.water_level > 0:
-                    temp_record = RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
-                    heightmap = temp_record.parse_heightmap()
-                    if heightmap:
-                        points_below_water = 0
-                        for i in heightmap:
-                            for j in i:
-                                if j < self.last_cell.water_level:
-                                    points_below_water += 1
-                        if points_below_water/1089 > 0.05 and self.last_cell.cell_coordinates:
-                            worldspace = self.last_cell.parent_worldspace.editor_id
-                            cell_xy = self.last_cell.cell_coordinates
-                            self.waterplanes.append((worldspace, cell_xy[0], cell_xy[1], self.last_cell.water_level))
+            if waterplanes_generation:
+                if self.last_cell.water_level:
+                    if self.last_cell.water_level > 0:
+                        temp_record = RecordLAND(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)
+                        heightmap = temp_record.parse_heightmap()
+                        if heightmap:
+                            points_below_water = 0
+                            for i in heightmap:
+                                for j in i:
+                                    if j < self.last_cell.water_level:
+                                        points_below_water += 1
+                            if points_below_water/1089 > 0.05 and self.last_cell.cell_coordinates:
+                                worldspace = self.last_cell.parent_worldspace.editor_id
+                                cell_xy = self.last_cell.cell_coordinates
+                                self.waterplanes.append((worldspace, cell_xy[0], cell_xy[1], self.last_cell.water_level))
 
-                    temp_record = None
+                        temp_record = None
             return RecordUseless(record_type, data_size, flags, form_id, vc_info, None, parent_group)
         elif record_type in ('ACHR', 'ACRE'):
             return Record(record_type, data_size, flags, form_id, vc_info, record_data, parent_group)

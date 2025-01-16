@@ -32,6 +32,9 @@ plugins_txt_path: ""
 #geometry under water is not merged
 water_culling: True
 
+#if True, will add waterplanes (aka 'make lakes in mountains visible in distance') to the merged LOD
+waterplanes_generation: False
+
 ###ADVANCED SETTINGS, DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING
 
 #you can use custom bsa name prefix if you need to save a esp slot and use a different esp to load the bsa
@@ -48,7 +51,7 @@ debug_level: "INFO"
 #memory-intensive but much faster
 #use if you can spare 4GB+ of RAM during generation
 #if set to auto, will be set to True if the script detects >=8GB of RAM
-#possible options: 'True', 'False', 'Auto'
+#possible options: 'True', 'False', 'Auto' - note quotes
 cache_loaded_nifs: 'Auto'
 
 #generates a csv that has statistic on how much each _far mesh contributes to the total triangle count
