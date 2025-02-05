@@ -33,7 +33,7 @@ plugins_txt_path: ""
 water_culling: True
 
 #if True, will add waterplanes (aka 'make lakes in mountains visible in distance') to the merged LOD
-waterplanes_generation: False
+waterplanes_generation: True
 
 ###ADVANCED SETTINGS, DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING
 

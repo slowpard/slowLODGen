@@ -974,7 +974,7 @@ if generate_bsa:
 
 def sort_esp_list(filepath, folder):
     file_list = []
-    with open(filepath, 'r') as file:
+    with open(filepath, 'r', encoding='windows-1252') as file:
         filenames = [line.strip() for line in file if line.strip()]
         
     for filename in filenames:
@@ -1181,7 +1181,7 @@ for obj in object_dict:
     if object_dict[obj].sig == 'STAT' or object_dict[obj].sig == 'ACTI':
         mesh_found = False
         try:
-            if os.path.exists(os.path.join(folder, 'meshes', object_dict[obj].model_filename.lower().replace('.nif', '_far.nif'))):
+            if os.path.exists(os.path.join(folder, 'meshes', object_dict[obj].model_filename.lower().replace('.nif', '_far.nif').lstrip('\\'))):
                     far_statics.append(obj)
                     mesh_found = True
         except AttributeError:
@@ -1189,7 +1189,7 @@ for obj in object_dict:
 
         if not mesh_found:
             try:
-                if 'meshes\\' + object_dict[obj].model_filename.lower().replace('.nif', '_far.nif') in far_mesh_list:
+                if 'meshes\\' + object_dict[obj].model_filename.lower().replace('.nif', '_far.nif').lstrip('\\') in far_mesh_list:
                     far_statics.append(obj)
             except AttributeError:
                 pass
@@ -1198,14 +1198,14 @@ for obj in object_dict:
     elif object_dict[obj].sig == 'TREE':
         billboard_found = False
         try:
-            if 'textures\\trees\\billboards' + object_dict[obj].model_filename.lower().replace('.spt', '.dds') in tree_billboard_textures:
+            if 'textures\\trees\\billboards\\' + object_dict[obj].model_filename.lower().replace('.spt', '.dds').lstrip('\\') in tree_billboard_textures:
                 billboard_found = True
                 far_trees.append(obj)
         except AttributeError:
             pass
         if not billboard_found:
             try:
-                if os.path.exists(os.path.join(folder, 'textures\\trees\\billboards', object_dict[obj].model_filename.lower().replace('.spt', '.dds'))):
+                if os.path.exists(os.path.join(folder, 'textures\\trees\\billboards', object_dict[obj].model_filename.lower().replace('.spt', '.dds').lstrip('\\'))):
                     far_trees.append(obj)
             except AttributeError:
                 pass
