@@ -165,6 +165,12 @@ except:
     waterplanes_generation = False
 
 
+try:
+    waterplane_min_size = config["waterplane_min_size"]
+except:
+    waterplane_min_size = 0.01
+
+
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -628,7 +634,7 @@ class ESPParser:
                                 for j in i:
                                     if j < self.last_cell.water_level:
                                         points_below_water += 1
-                            if points_below_water/1089 > 0.05 and self.last_cell.cell_coordinates:
+                            if points_below_water/1089 > waterplane_min_size and self.last_cell.cell_coordinates:
                                 worldspace = self.last_cell.parent_worldspace.editor_id
                                 cell_xy = self.last_cell.cell_coordinates
                                 self.waterplanes.append((worldspace, cell_xy[0], cell_xy[1], self.last_cell.water_level))
