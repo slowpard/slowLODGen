@@ -171,6 +171,12 @@ except:
     waterplane_min_size = 0.01
 
 
+try:
+    show_waterplane_info = config["show_waterplane_info"]
+except:
+    show_waterplane_info = False
+
+
 
 class Subrecord:
     def __init__(self, sig, size, data, has_size=True, **kwargs):
@@ -1343,6 +1349,8 @@ for worldspace in LODGen:
                         mesh_file = object_dict[obj[0]].model_filename
                         if "waterplane" in mesh_file.lower():
                             skip_waterplane = True
+                            if show_waterplane_info:
+                                logging.info(f'Waterplane found in {worldspace} [{i},{j}], formid {hex(obj[0])}')
                             
                         path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
                         if not os.path.exists(path):
