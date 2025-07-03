@@ -33,6 +33,7 @@ plugins_txt_path: ""
 water_culling: True
 
 #if True, will add waterplanes (aka 'make lakes in mountains visible in distance') to the merged LOD
+#if some other mod adds a waterplane LOD mesh to a cell, that mesh would be used instead
 waterplanes_generation: False
 
 ###ADVANCED SETTINGS, DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING
@@ -46,6 +47,9 @@ custom_bsa_name: ""
 #"DEBUG" generates the most, "CRITICAL" generates the least
 #possible values: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
 debug_level: "INFO"
+
+#minimum percentage of area where water is above the ground for a waterplane to be placed
+waterplane_min_size: 0.01
 
 #if set to True, nifs loaded by pyffi will not be unloaded on every merge
 #memory-intensive but much faster
@@ -163,3 +167,6 @@ hardcoded_bsas:
  
 #if True only vwd flagged references will be merged
 only_vwd_flagged_refs: False
+
+#show info when some a waterplane mesh is found
+show_waterplane_info: False
