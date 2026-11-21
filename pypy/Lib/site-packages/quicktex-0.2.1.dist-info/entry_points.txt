@@ -1,0 +1,2 @@
+[console_scripts]
+quicktex = quicktex.__main__:main
