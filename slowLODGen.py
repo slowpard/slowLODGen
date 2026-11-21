@@ -9,6 +9,7 @@ import struct
 import zlib
 import math
 import shutil
+import random
 from NifMerger.NifProcessor import NifProcessor
 #import gc
 import csv
@@ -148,8 +149,8 @@ try:
     if cache_loaded_nifs_ == "true":
         cache_loaded_nifs = True
     elif cache_loaded_nifs_ == "auto":
-        available_memory = psutil.virtual_memory().available #8GB is where nif-caching is reasonable
-        if available_memory < 7.5 * 1024 * 1024 * 1024:
+        available_memory = psutil.virtual_memory().available #the cache is capped at ~170MB, see NifProcessor.CACHE_BUDGET_BYTES
+        if available_memory < 2 * 1024 * 1024 * 1024:
             cache_loaded_nifs = False
         else:
             cache_loaded_nifs = True
@@ -1288,6 +1289,55 @@ waterplane_nif = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resou
 
 logging.info(f"Mesh generation started: {elapsed_time:.6f} seconds")
 
+far_path_lookup = {}
+def resolve_far_path(mesh_file):
+    #loose _far mesh wins over the one extracted from BSAs
+    key = mesh_file.lower()
+    path = far_path_lookup.get(key)
+    if path is None:
+        rel = key.replace('.nif', '_far.nif')
+        path = os.path.join(folder, 'meshes', rel)
+        if not os.path.exists(path):
+            path = os.path.join(folder, 'LODMerger', 'meshes', rel)
+        far_path_lookup[key] = path
+    return path
+
+def count_nif_uses():
+    #mirrors the filters of the merge loop below: how many times each nif path will go through ProcessNif
+    #if the loop's filters change, change these too (a mismatch only costs cache efficiency, never output)
+    uses = {}
+    for worldspace in LODGen:
+        for i in LODGen[worldspace]:
+            for j in LODGen[worldspace][i]:
+                paths = []
+                trees_count = 0
+                skip_waterplane = False
+                for obj in LODGen[worldspace][i][j]:
+                    base = object_dict[obj[0]]
+                    if base.sig == 'STAT' or base.sig == 'ACTI':
+                        if base.model_filename.lower() in meshes_to_skip:
+                            continue
+                        if "waterplane" in base.model_filename.lower():
+                            skip_waterplane = True
+                        paths.append(resolve_far_path(base.model_filename))
+                    elif base.sig == 'TREE':
+                        trees_count += 1
+                water_level = None
+                try:
+                    water_level = waterplanes_list[worldspace][i][j]
+                except:
+                    pass
+                if len(paths) > 1 or water_level or trees_count > 0:
+                    if water_level and not skip_waterplane:
+                        paths.append(waterplane_nif)
+                    for p in paths:
+                        uses[p] = uses.get(p, 0) + 1
+    return uses
+
+if merger.CACHE_NIFS and not skip_nif_generation:
+    merger.nif_uses_left = count_nif_uses()
+    logging.info(f'NIF cache: {len(merger.nif_uses_left)} meshes, {sum(1 for u in merger.nif_uses_left.values() if u > 1)} used more than once')
+
 triangle_logger = {}
 
 for worldspace in LODGen:
@@ -1352,9 +1402,7 @@ for worldspace in LODGen:
                             if show_waterplane_info:
                                 logging.info(f'Waterplane found in {worldspace} [{i},{j}], formid {hex(obj[0])}')
                             
-                        path = os.path.join(folder, 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
-                        if not os.path.exists(path):
-                            path = os.path.join(folder, 'LODMerger', 'meshes', mesh_file.lower().replace('.nif', '_far.nif'))
+                        path = resolve_far_path(mesh_file)
                         position = (obj[1][0] - middle_of_cell[0], obj[1][1] - middle_of_cell[1], obj[1][2] - middle_of_cell[2] - average_z)
                         #radians to degrees
                         rotations = (obj[2][0] * 57.295779513, obj[2][1] * 57.295779513 , obj[2][2] * 57.295779513 )
@@ -1416,6 +1464,8 @@ for worldspace in LODGen:
 end_time = time.time()                    
 elapsed_time = end_time - start_time
 logging.info(f"Meshes generated: {elapsed_time:.6f} seconds")
+if merger.nif_uses_left is not None:
+    logging.info(f'NIF cache: {merger.cache_loads} loads, {merger.cache_hits} cache hits')
 
 if triangle_profiler:
     with open('triangle_logger.csv', 'w', newline='') as csvfile:
